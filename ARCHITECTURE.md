@@ -213,15 +213,82 @@ private InvoiceStatus $status;
 ```php
 class CompanyData {
     // ... autres champs
-    public readonly int $fiscalYearStartMonth;  // Ex: 11 (novembre)
-    public readonly int $fiscalYearStartDay;    // Ex: 1
+    public readonly int $fiscalYearStartMonth;   // Ex: 11 (novembre)
+    public readonly int $fiscalYearStartDay;     // Ex: 1
+    public readonly int $fiscalYearStartYear;    // Ex: 2024 (année réelle de début, 0 = auto-calculé)
 }
 ```
 
-**Exemple :**
-- Société A : exercice de janvier à décembre (standard)
-- Société B : exercice de novembre à octobre
-- Société C : 1er exercice juillet-novembre (5 mois), puis novembre-octobre
+**Gestion des exercices de durée variable :**
+
+Le champ `fiscalYearStartYear` permet de gérer les exercices comptables incomplets ou de durée variable :
+
+- **Valeur 0 (défaut)** : Exercice "classique" annuel, l'année est calculée automatiquement
+- **Valeur explicite** : Année réelle de début de l'exercice comptable
+
+**Exemples concrets :**
+
+**Société A (exercice standard Jan-Déc)** :
+```php
+new CompanyData(
+    fiscalYearStartMonth: 1,
+    fiscalYearStartDay: 1,
+    fiscalYearStartYear: 0  // Auto-calculé
+);
+// Exercice 2024 : Janvier 2024 → Décembre 2024
+// Exercice 2025 : Janvier 2025 → Décembre 2025
+// Numérotation : FA-2024-0001, FA-2025-0001, etc.
+```
+
+**Société B (exercice Nov-Oct)** :
+```php
+new CompanyData(
+    fiscalYearStartMonth: 11,
+    fiscalYearStartDay: 1,
+    fiscalYearStartYear: 0  // Auto-calculé
+);
+// Exercice 2024 : Novembre 2024 → Octobre 2025
+// Exercice 2025 : Novembre 2025 → Octobre 2026
+// Numérotation : FA-2024-0001, FA-2025-0001, etc.
+```
+
+**Société C (1er exercice Juil-Nov, puis Nov-Oct)** :
+```php
+// Premier exercice (Juillet-Novembre 2024) - 5 mois
+new CompanyData(
+    fiscalYearStartMonth: 7,
+    fiscalYearStartDay: 1,
+    fiscalYearStartYear: 2024  // Explicite
+);
+// Numérotation : FA-2024-0001, FA-2024-0002, etc.
+
+// Deuxième exercice (Novembre 2024-Octobre 2025) - 12 mois
+new CompanyData(
+    fiscalYearStartMonth: 11,
+    fiscalYearStartDay: 1,
+    fiscalYearStartYear: 2024  // Explicite (même année que précédent)
+);
+// Numérotation : FA-2024-0003, FA-2024-0004, etc. (continue la séquence)
+
+// Troisième exercice (Novembre 2025-Octobre 2026)
+new CompanyData(
+    fiscalYearStartMonth: 11,
+    fiscalYearStartDay: 1,
+    fiscalYearStartYear: 2025  // Nouvelle année = reset séquence
+);
+// Numérotation : FA-2025-0001, FA-2025-0002, etc.
+```
+
+**Règle de calcul** :
+- `{YEAR}` dans le format de numérotation = `fiscalYearStartYear` si > 0, sinon calculé automatiquement selon les règles standard
+- `InvoiceSequence.fiscalYear` = identifiant unique incrémental de l'exercice (clé technique)
+- Les séquences reset quand `fiscalYearStartYear` change
+
+Cette approche permet de :
+- ✅ Gérer les exercices incomplets (création société, liquidation)
+- ✅ Gérer les changements de dates d'exercice
+- ✅ Respecter le droit comptable français (année de début)
+- ✅ Garantir l'unicité des numéros (contrainte unique sur fiscalYear)
 
 #### Format de numérotation
 

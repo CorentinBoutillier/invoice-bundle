@@ -10,7 +10,7 @@
 ## Progression globale
 - [x] Phase 0 : Setup Qualité & Tests (5 tâches) - Tâches 1-5
 - [x] Phase 1 : Enums - TDD (8 tâches) - Tâches 6-13
-- [ ] Phase 2 : DTOs - TDD (4 tâches) - Tâches 14-17
+- [x] Phase 2 : DTOs - TDD (4 tâches) - Tâches 14-17
 - [ ] Phase 3 : Entités - TDD (22 tâches) - Tâches 18-39
 - [ ] Phase 4 : Repositories - TDD (4 tâches) - Tâches 40-43
 - [ ] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 44-48
@@ -95,21 +95,21 @@
 
 ### CompanyData
 
-- [ ] 14. TEST : Écrire les tests pour CompanyData
+- [x] 14. TEST : Écrire les tests pour CompanyData
   - `tests/Unit/DTO/CompanyDataTest.php`
   - Construction
   - Tous les champs
 
-- [ ] 15. CODE : Implémenter CompanyData
+- [x] 15. CODE : Implémenter CompanyData
   - `src/DTO/CompanyData.php`
   - Readonly properties
 
 ### CustomerData
 
-- [ ] 16. TEST : Écrire les tests pour CustomerData
+- [x] 16. TEST : Écrire les tests pour CustomerData
   - `tests/Unit/DTO/CustomerDataTest.php`
 
-- [ ] 17. CODE : Implémenter CustomerData
+- [x] 17. CODE : Implémenter CustomerData
   - `src/DTO/CustomerData.php`
 
 **✓ Validation Phase 2** : PHPStan + CS Fixer + Tests 100%
