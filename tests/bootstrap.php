@@ -19,8 +19,13 @@ if (is_dir($cacheDir)) {
 
     /** @var SplFileInfo $fileinfo */
     foreach ($files as $fileinfo) {
+        $realPath = $fileinfo->getRealPath();
+        if (false === $realPath) {
+            continue;
+        }
+
         $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
-        $todo($fileinfo->getRealPath());
+        $todo($realPath);
     }
 
     rmdir($cacheDir);

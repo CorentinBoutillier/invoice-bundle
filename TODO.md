@@ -9,7 +9,7 @@
 
 ## Progression globale
 - [x] Phase 0 : Setup Qualité & Tests (5 tâches) - Tâches 1-5
-- [ ] Phase 1 : Enums - TDD (8 tâches) - Tâches 6-13
+- [x] Phase 1 : Enums - TDD (8 tâches) - Tâches 6-13
 - [ ] Phase 2 : DTOs - TDD (4 tâches) - Tâches 14-17
 - [ ] Phase 3 : Entités - TDD (22 tâches) - Tâches 18-39
 - [ ] Phase 4 : Repositories - TDD (4 tâches) - Tâches 40-43
@@ -54,37 +54,37 @@
 
 ### InvoiceStatus
 
-- [ ] 6. TEST : Écrire les tests pour InvoiceStatus
+- [x] 6. TEST : Écrire les tests pour InvoiceStatus
   - `tests/Unit/Enum/InvoiceStatusTest.php`
   - Tous les cas disponibles
   - Values correctes
 
-- [ ] 7. CODE : Implémenter InvoiceStatus
+- [x] 7. CODE : Implémenter InvoiceStatus
   - `src/Enum/InvoiceStatus.php`
   - Les tests doivent passer
 
 ### InvoiceType
 
-- [ ] 8. TEST : Écrire les tests pour InvoiceType
+- [x] 8. TEST : Écrire les tests pour InvoiceType
   - `tests/Unit/Enum/InvoiceTypeTest.php`
 
-- [ ] 9. CODE : Implémenter InvoiceType
+- [x] 9. CODE : Implémenter InvoiceType
   - `src/Enum/InvoiceType.php`
 
 ### PaymentMethod
 
-- [ ] 10. TEST : Écrire les tests pour PaymentMethod
+- [x] 10. TEST : Écrire les tests pour PaymentMethod
   - `tests/Unit/Enum/PaymentMethodTest.php`
 
-- [ ] 11. CODE : Implémenter PaymentMethod
+- [x] 11. CODE : Implémenter PaymentMethod
   - `src/Enum/PaymentMethod.php`
 
 ### InvoiceHistoryAction
 
-- [ ] 12. TEST : Écrire les tests pour InvoiceHistoryAction
+- [x] 12. TEST : Écrire les tests pour InvoiceHistoryAction
   - `tests/Unit/Enum/InvoiceHistoryActionTest.php`
 
-- [ ] 13. CODE : Implémenter InvoiceHistoryAction
+- [x] 13. CODE : Implémenter InvoiceHistoryAction
   - `src/Enum/InvoiceHistoryAction.php`
 
 **✓ Validation Phase 1** : PHPStan + CS Fixer + Tests 100%

@@ -3,3 +3,4 @@ vendor/
 coverage/
 composer.lock
 .php-cs-fixer.cache
+var/cache/phpstan/

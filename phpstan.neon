@@ -9,3 +9,31 @@ parameters:
         - tests
     excludePaths:
         - tests/Fixtures
+
+    # Performance
+    tmpDir: var/cache/phpstan
+
+    # Inférence de types
+    inferPrivatePropertyTypeFromConstructor: true
+    treatPhpDocTypesAsCertain: false
+
+    # Strictness maximale
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    checkBenevolentUnionTypes: true
+    checkExplicitMixedMissingReturn: true
+    checkPhpDocMissingReturn: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    reportUnmatchedIgnoredErrors: true
+
+    # Détection des erreurs cachées
+    checkUninitializedProperties: true
+    checkDynamicProperties: true
+    checkImplicitMixed: true
+
+    # Symfony/Doctrine spécifiques
+    symfony:
+        constant_hassers: false
+        container_xml_path: null
+    doctrine:
+        repositoryClass: Doctrine\ORM\EntityRepository
