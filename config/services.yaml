@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Services disponibles pour l'autowiring
+    CorentinBoutillier\InvoiceBundle\Service\:
+        resource: '../src/Service/*'
+
+    CorentinBoutillier\InvoiceBundle\Repository\:
+        resource: '../src/Repository/*'
+        tags: ['doctrine.repository_service']
+
+    CorentinBoutillier\InvoiceBundle\EventSubscriber\:
+        resource: '../src/EventSubscriber/*'
+        tags: ['kernel.event_subscriber']
+
+    CorentinBoutillier\InvoiceBundle\Validator\:
+        resource: '../src/Validator/*'
