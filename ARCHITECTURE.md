@@ -336,15 +336,58 @@ class CustomNumberGenerator implements InvoiceNumberGeneratorInterface {
 #[ORM\Entity]
 #[UniqueConstraint(columns: ['company_id', 'fiscal_year', 'type'])]
 class InvoiceSequence {
-    private ?int $companyId;           // NULL si mono-société
-    private int $fiscalYear;           // 2025, 2026, etc.
-    private InvoiceType $type;         // INVOICE ou CREDIT_NOTE
-    private int $lastNumber = 0;       // Dernier numéro utilisé
+    private ?int $companyId;                    // NULL si mono-société
+    private int $fiscalYear;                    // 2024, 2025, etc. (année affichée dans le numéro)
+    private InvoiceType $type;                  // INVOICE ou CREDIT_NOTE
+    private int $lastNumber = 0;                // Dernier numéro utilisé
+
+    // Dates réelles de l'exercice comptable (support exercices variables)
+    private \DateTimeImmutable $startDate;      // Ex: 2024-07-01
+    private \DateTimeImmutable $endDate;        // Ex: 2024-11-30
 }
 ```
 
+**Rôle des champs :**
+- `fiscalYear` : Année utilisée dans le numéro de facture (ex: FA-2024-0001)
+- `startDate` / `endDate` : Période réelle de l'exercice comptable
+- Permet de trouver la bonne séquence : `WHERE :invoiceDate BETWEEN startDate AND endDate`
+
+**Génération automatique vs manuelle :**
+- **90% des cas** : Les lignes InvoiceSequence sont générées **automatiquement** depuis CompanyData (fiscalYearStartMonth/Day/Year)
+- **Cas spéciaux** : Création **manuelle** pour exercices incomplets (création société, changement de dates)
+
+**Exemples de données :**
+
+**Société A (Jan-Déc standard)** :
+```sql
+-- Génération automatique depuis CompanyData(fiscalYearStartMonth: 1)
+(companyId: 1, fiscalYear: 2024, type: INVOICE, start: '2024-01-01', end: '2024-12-31', lastNumber: 42)
+(companyId: 1, fiscalYear: 2025, type: INVOICE, start: '2025-01-01', end: '2025-12-31', lastNumber: 15)
+```
+
+**Société B (Nov-Oct)** :
+```sql
+-- Génération automatique depuis CompanyData(fiscalYearStartMonth: 11)
+(companyId: 2, fiscalYear: 2023, type: INVOICE, start: '2023-11-01', end: '2024-10-31', lastNumber: 128)
+(companyId: 2, fiscalYear: 2024, type: INVOICE, start: '2024-11-01', end: '2025-10-31', lastNumber: 3)
+```
+
+**Société C (exercice incomplet puis Nov-Oct)** :
+```sql
+-- Exercice 1 (5 mois) : CRÉATION MANUELLE
+(companyId: 3, fiscalYear: 2024, type: INVOICE, start: '2024-07-01', end: '2024-11-30', lastNumber: 5)
+
+-- Exercices suivants : GÉNÉRATION AUTOMATIQUE depuis CompanyData(fiscalYearStartMonth: 11, fiscalYearStartYear: 2024)
+(companyId: 3, fiscalYear: 2024, type: INVOICE, start: '2024-11-01', end: '2025-10-31', lastNumber: 12)
+(companyId: 3, fiscalYear: 2025, type: INVOICE, start: '2025-11-01', end: '2026-10-31', lastNumber: 0)
+```
+
+**Note** : Deux lignes peuvent avoir le même `fiscalYear` si elles ont des périodes différentes (voir Société C).
+
 **Avantages :**
-- ✅ Gestion exercices comptables complexes
+- ✅ Gestion exercices comptables de toute durée (5 mois, 12 mois, 18 mois)
+- ✅ Support des changements de dates d'exercice
+- ✅ Recherche rapide de la séquence par date de facture
 - ✅ Séquences isolées par société
 - ✅ Format configurable
 - ✅ Overridable complètement si besoin
