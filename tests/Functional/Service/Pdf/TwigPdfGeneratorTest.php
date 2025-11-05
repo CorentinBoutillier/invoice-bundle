@@ -11,6 +11,7 @@ use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
 use CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface;
 use CorentinBoutillier\InvoiceBundle\Tests\Functional\Repository\RepositoryTestCase;
+use Smalot\PdfParser\Parser as PdfParser;
 
 final class TwigPdfGeneratorTest extends RepositoryTestCase
 {
@@ -59,7 +60,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
         $result = $this->pdfGenerator->generate($invoice);
 
         // A valid PDF should have at least 1KB
-        $this->assertGreaterThan(1000, strlen($result));
+        $this->assertGreaterThan(1000, \strlen($result));
     }
 
     // ========== Different Types Tests ==========
@@ -71,8 +72,11 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
         $result = $this->pdfGenerator->generate($invoice);
 
         $this->assertStringStartsWith('%PDF-', $result);
-        // Check if "FACTURE" appears in PDF binary
-        $this->assertStringContainsString('FACTURE', $result);
+
+        // Extract text from PDF
+        $text = $this->extractTextFromPdf($result);
+        $this->assertStringContainsString('FACTURE', $text);
+        $this->assertStringNotContainsString('AVOIR', $text);
     }
 
     public function testGeneratePdfForCreditNoteType(): void
@@ -82,8 +86,11 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
         $result = $this->pdfGenerator->generate($invoice);
 
         $this->assertStringStartsWith('%PDF-', $result);
-        // Check if "AVOIR" appears in PDF binary
-        $this->assertStringContainsString('AVOIR', $result);
+
+        // Extract text from PDF
+        $text = $this->extractTextFromPdf($result);
+        $this->assertStringContainsString('AVOIR', $text);
+        $this->assertStringNotContainsString('FACTURE', $text);
     }
 
     // ========== Basic Content Tests ==========
@@ -94,8 +101,10 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 
         $result = $this->pdfGenerator->generate($invoice);
 
-        // Invoice number should appear in the PDF
-        $this->assertStringContainsString($invoice->getNumber(), $result);
+        $text = $this->extractTextFromPdf($result);
+        $invoiceNumber = $invoice->getNumber();
+        $this->assertNotNull($invoiceNumber);
+        $this->assertStringContainsString($invoiceNumber, $text);
     }
 
     public function testPdfContainsCompanyName(): void
@@ -104,7 +113,8 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 
         $result = $this->pdfGenerator->generate($invoice);
 
-        $this->assertStringContainsString($invoice->getCompanyName(), $result);
+        $text = $this->extractTextFromPdf($result);
+        $this->assertStringContainsString($invoice->getCompanyName(), $text);
     }
 
     public function testPdfContainsCustomerName(): void
@@ -113,7 +123,8 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 
         $result = $this->pdfGenerator->generate($invoice);
 
-        $this->assertStringContainsString($invoice->getCustomerName(), $result);
+        $text = $this->extractTextFromPdf($result);
+        $this->assertStringContainsString($invoice->getCustomerName(), $text);
     }
 
     public function testPdfContainsTotalAmount(): void
@@ -122,11 +133,9 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 
         $result = $this->pdfGenerator->generate($invoice);
 
-        // Total amount should appear (check for the amount value)
-        $totalAmount = $invoice->getTotalIncludingVat()->getAmount();
-        $this->assertGreaterThan(0, $totalAmount);
-        // PDF should contain some representation of the total
-        $this->assertNotEmpty($result);
+        $text = $this->extractTextFromPdf($result);
+        // Check that we have "100,00" in the text (French number format)
+        $this->assertStringContainsString('100,00', $text);
     }
 
     public function testPdfContainsDates(): void
@@ -135,9 +144,9 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 
         $result = $this->pdfGenerator->generate($invoice);
 
-        // Dates should appear in some format in the PDF
+        $text = $this->extractTextFromPdf($result);
         $invoiceDate = $invoice->getDate()->format('d/m/Y');
-        $this->assertStringContainsString($invoiceDate, $result);
+        $this->assertStringContainsString($invoiceDate, $text);
     }
 
     // ========== Edge Cases Tests ==========
@@ -149,10 +158,12 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
         $result = $this->pdfGenerator->generate($invoice);
 
         $this->assertStringStartsWith('%PDF-', $result);
-        $this->assertGreaterThan(1000, strlen($result));
+        $this->assertGreaterThan(1000, \strlen($result));
+
+        $text = $this->extractTextFromPdf($result);
         // Should contain all line descriptions
         foreach ($invoice->getLines() as $line) {
-            $this->assertStringContainsString($line->getDescription(), $result);
+            $this->assertStringContainsString($line->getDescription(), $text);
         }
     }
 
@@ -172,6 +183,17 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 
     // ========== Helper Methods ==========
 
+    /**
+     * Extract text content from a PDF binary string.
+     */
+    private function extractTextFromPdf(string $pdfBinary): string
+    {
+        $parser = new PdfParser();
+        $pdf = $parser->parseContent($pdfBinary);
+
+        return $pdf->getText();
+    }
+
     private function createTestInvoice(InvoiceType $type = InvoiceType::INVOICE): Invoice
     {
         $invoice = new Invoice(
@@ -185,7 +207,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
         );
 
         $invoice->setStatus(InvoiceStatus::FINALIZED);
-        $invoice->setNumber($type === InvoiceType::INVOICE ? 'FA-2025-0001' : 'AV-2025-0001');
+        $invoice->setNumber(InvoiceType::INVOICE === $type ? 'FA-2025-0001' : 'AV-2025-0001');
         $invoice->setCompanyId(1);
         $invoice->setCompanySiret('12345678901234');
         $invoice->setCompanyVatNumber('FR12345678901');
@@ -266,7 +288,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
         $invoice->addLine($line);
 
         // Apply global discount
-        $invoice->applyGlobalDiscountAmount(Money::fromEuros('20.00'));
+        $invoice->setGlobalDiscountAmount(Money::fromEuros('20.00'));
 
         $this->entityManager->persist($invoice);
         $this->entityManager->flush();

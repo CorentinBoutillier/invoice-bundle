@@ -94,6 +94,15 @@ class Invoice
     #[ORM\Column(type: 'string', length: 50, nullable: true)]
     private ?string $companyVatNumber = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $companyBankName = null;
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $companyIban = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $companyBic = null;
+
     // ========== Collections ==========
 
     /**
@@ -365,6 +374,36 @@ class Invoice
     public function setCompanyVatNumber(?string $companyVatNumber): void
     {
         $this->companyVatNumber = $companyVatNumber;
+    }
+
+    public function getCompanyBankName(): ?string
+    {
+        return $this->companyBankName;
+    }
+
+    public function setCompanyBankName(?string $companyBankName): void
+    {
+        $this->companyBankName = $companyBankName;
+    }
+
+    public function getCompanyIban(): ?string
+    {
+        return $this->companyIban;
+    }
+
+    public function setCompanyIban(?string $companyIban): void
+    {
+        $this->companyIban = $companyIban;
+    }
+
+    public function getCompanyBic(): ?string
+    {
+        return $this->companyBic;
+    }
+
+    public function setCompanyBic(?string $companyBic): void
+    {
+        $this->companyBic = $companyBic;
     }
 
     // ========== Lines Management ==========

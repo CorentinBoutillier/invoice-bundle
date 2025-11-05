@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ invoice.type.value == 'invoice' ? 'Facture' : 'Avoir' }} {{ invoice.number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 10pt;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .header {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .header-company,
+        .header-customer {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .header-company {
+            padding-right: 20px;
+        }
+
+        .header-customer {
+            padding-left: 20px;
+        }
+
+        h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0 20px 0;
+            color: #2c3e50;
+        }
+
+        .invoice-info {
+            margin-bottom: 30px;
+        }
+
+        .invoice-info table {
+            width: 100%;
+        }
+
+        .invoice-info td {
+            padding: 5px;
+        }
+
+        .invoice-info td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+
+        table.lines {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table.lines th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 5px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        table.lines td {
+            border-bottom: 1px solid #ddd;
+            padding: 8px 5px;
+        }
+
+        table.lines tr:last-child td {
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        table.lines .text-right {
+            text-align: right;
+        }
+
+        table.lines .text-center {
+            text-align: center;
+        }
+
+        .totals {
+            width: 50%;
+            margin-left: auto;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .totals table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .totals td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .totals td:first-child {
+            font-weight: bold;
+        }
+
+        .totals td:last-child {
+            text-align: right;
+        }
+
+        .totals tr.total-final td {
+            background-color: #2c3e50;
+            color: white;
+            font-size: 12pt;
+            font-weight: bold;
+            border-bottom: none;
+        }
+
+        .payment-info {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #2c3e50;
+        }
+
+        .legal-mentions {
+            margin-top: 40px;
+            font-size: 8pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .company-section,
+        .customer-section {
+            font-size: 9pt;
+        }
+
+        .company-section h3,
+        .customer-section h3 {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .company-section p,
+        .customer-section p {
+            margin: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% block header %}
+        <div class="header">
+            <div class="header-company">
+                <div class="company-section">
+                    <h3>{{ invoice.companyName }}</h3>
+                    <p>{{ invoice.companyAddress|nl2br }}</p>
+                    {% if invoice.companySiret %}
+                        <p><strong>SIRET :</strong> {{ invoice.companySiret }}</p>
+                    {% endif %}
+                    {% if invoice.companyVatNumber %}
+                        <p><strong>N° TVA :</strong> {{ invoice.companyVatNumber }}</p>
+                    {% endif %}
+                    {% if invoice.companyEmail %}
+                        <p><strong>Email :</strong> {{ invoice.companyEmail }}</p>
+                    {% endif %}
+                    {% if invoice.companyPhone %}
+                        <p><strong>Tél :</strong> {{ invoice.companyPhone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="header-customer">
+                {% block customer %}
+                <div class="customer-section">
+                    <h3>Client</h3>
+                    <p><strong>{{ invoice.customerName }}</strong></p>
+                    <p>{{ invoice.customerAddress|nl2br }}</p>
+                    {% if invoice.customerSiret %}
+                        <p><strong>SIRET :</strong> {{ invoice.customerSiret }}</p>
+                    {% endif %}
+                    {% if invoice.customerVatNumber %}
+                        <p><strong>N° TVA :</strong> {{ invoice.customerVatNumber }}</p>
+                    {% endif %}
+                    {% if invoice.customerEmail %}
+                        <p><strong>Email :</strong> {{ invoice.customerEmail }}</p>
+                    {% endif %}
+                    {% if invoice.customerPhone %}
+                        <p><strong>Tél :</strong> {{ invoice.customerPhone }}</p>
+                    {% endif %}
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+        {% endblock %}
+
+        <h1>{{ invoice.type.value == 'invoice' ? 'FACTURE' : 'AVOIR' }} {{ invoice.number }}</h1>
+
+        <div class="invoice-info">
+            <table>
+                <tr>
+                    <td><strong>Date :</strong></td>
+                    <td>{{ invoice.date|date('d/m/Y') }}</td>
+                    <td><strong>Échéance :</strong></td>
+                    <td>{{ invoice.dueDate|date('d/m/Y') }}</td>
+                </tr>
+                {% if invoice.paymentTerms %}
+                <tr>
+                    <td><strong>Conditions :</strong></td>
+                    <td colspan="3">{{ invoice.paymentTerms }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        {% block lines %}
+        <table class="lines">
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Description</th>
+                    <th class="text-center" style="width: 10%;">Qté</th>
+                    <th class="text-right" style="width: 13%;">PU HT</th>
+                    <th class="text-center" style="width: 10%;">TVA</th>
+                    <th class="text-right" style="width: 17%;">Total TTC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in invoice.lines %}
+                <tr>
+                    <td>
+                        {{ line.description }}
+                        {% if line.discountRate > 0 or (line.discountAmount is not null and not line.discountAmount.isZero) %}
+                            <br><em style="font-size: 8pt; color: #666;">
+                                Remise :
+                                {% if line.discountRate > 0 %}
+                                    {{ line.discountRate }}%
+                                {% else %}
+                                    {{ (line.discountAmount.amount / 100)|number_format(2, ',', ' ') }} €
+                                {% endif %}
+                            </em>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ line.quantity }}</td>
+                    <td class="text-right">{{ (line.unitPrice.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                    <td class="text-center">{{ line.vatRate }}%</td>
+                    <td class="text-right">{{ (line.totalIncludingVat.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endblock %}
+
+        {% block totals %}
+        <div class="totals">
+            <table>
+                {% if not invoice.globalDiscountAmount.isZero %}
+                <tr>
+                    <td>Sous-total avant remise</td>
+                    <td>{{ (invoice.subtotalBeforeDiscount.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+                <tr>
+                    <td>Remise globale</td>
+                    <td>- {{ (invoice.globalDiscountAmount.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Total HT</td>
+                    <td>{{ (invoice.subtotalAfterDiscount.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+                <tr>
+                    <td>Total TVA</td>
+                    <td>{{ (invoice.totalVat.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+                <tr class="total-final">
+                    <td>TOTAL TTC</td>
+                    <td>{{ (invoice.totalIncludingVat.amount / 100)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+            </table>
+        </div>
+        {% endblock %}
+
+        {% if not invoice.totalPaid.isZero or invoice.payments|length > 0 %}
+        <div class="payment-info">
+            <h3 style="margin-bottom: 10px; color: #2c3e50;">Informations de paiement</h3>
+            <p><strong>Montant payé :</strong> {{ (invoice.totalPaid.amount / 100)|number_format(2, ',', ' ') }} €</p>
+            <p><strong>Reste à payer :</strong> {{ (invoice.remainingAmount.amount / 100)|number_format(2, ',', ' ') }} €</p>
+
+            {% if invoice.payments|length > 0 %}
+                <p style="margin-top: 10px;"><strong>Paiements :</strong></p>
+                <ul style="margin-left: 20px; margin-top: 5px;">
+                    {% for payment in invoice.payments %}
+                        <li>{{ payment.paidAt|date('d/m/Y') }} - {{ (payment.amount.amount / 100)|number_format(2, ',', ' ') }} € ({{ payment.method.value }})</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% block legal_mentions %}
+        <div class="legal-mentions">
+            <p><strong>Mentions légales :</strong></p>
+            <p>
+                En cas de retard de paiement, seront exigibles, conformément à l'article L. 441-6 du Code de commerce,
+                une indemnité calculée sur la base de trois fois le taux d'intérêt légal en vigueur ainsi qu'une indemnité
+                forfaitaire pour frais de recouvrement de 40 euros.
+            </p>
+            <p style="margin-top: 10px;">
+                Escompte pour paiement anticipé : néant. Pénalité en cas de retard de paiement : taux BCE + 10 points.
+            </p>
+            {% if invoice.companySiret %}
+                <p style="margin-top: 10px;">
+                    {{ invoice.companyName }} - SIRET : {{ invoice.companySiret }}
+                    {% if invoice.companyVatNumber %} - N° TVA : {{ invoice.companyVatNumber }}{% endif %}
+                </p>
+            {% endif %}
+        </div>
+        {% endblock %}
+
+        {% block footer %}
+        <div class="footer">
+            {% if invoice.companyBankName or invoice.companyIban %}
+                <p><strong>Coordonnées bancaires :</strong></p>
+                {% if invoice.companyBankName %}<p>{{ invoice.companyBankName }}</p>{% endif %}
+                {% if invoice.companyIban %}<p>IBAN : {{ invoice.companyIban }}</p>{% endif %}
+                {% if invoice.companyBic %}<p>BIC : {{ invoice.companyBic }}</p>{% endif %}
+            {% endif %}
+        </div>
+        {% endblock %}
+    </div>
+</body>
+</html>

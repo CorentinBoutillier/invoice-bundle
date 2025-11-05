@@ -27,3 +27,12 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\PaymentManagerInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\PaymentManager
         public: false
+
+    CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator:
+        arguments:
+            $twig: '@twig'
+            $templatePath: '@Invoice/invoice/pdf.html.twig'
+
+    CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator
+        public: false

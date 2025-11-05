@@ -8,6 +8,7 @@ use CorentinBoutillier\InvoiceBundle\InvoiceBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -26,6 +27,7 @@ class TestKernel extends Kernel
         return [
             new FrameworkBundle(),
             new DoctrineBundle(),
+            new TwigBundle(),
             new InvoiceBundle(),
         ];
     }
@@ -80,6 +82,13 @@ class TestKernel extends Kernel
             ],
         ]);
 
+        $container->loadFromExtension('twig', [
+            'default_path' => '%kernel.project_dir%/../../templates',
+            'paths' => [
+                '%kernel.project_dir%/../../templates' => 'Invoice',
+            ],
+        ]);
+
         // Register repositories as services
         $container->register('CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository')
             ->setClass('CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository')
@@ -117,6 +126,19 @@ class TestKernel extends Kernel
         $container->setAlias(
             'CorentinBoutillier\InvoiceBundle\Service\PaymentManagerInterface',
             'CorentinBoutillier\InvoiceBundle\Service\PaymentManager',
+        )->setPublic(true);
+
+        // Register TwigPdfGenerator service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator')
+            ->addArgument(new Reference('twig'))
+            ->addArgument('@Invoice/invoice/pdf.html.twig')
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator',
         )->setPublic(true);
     }
 
