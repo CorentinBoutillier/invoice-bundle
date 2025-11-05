@@ -376,7 +376,7 @@
 
 ### InvoiceNumberGenerator
 
-- [ ] 55. TEST : Tests pour InvoiceNumberGenerator
+- [x] 55. TEST : Tests pour InvoiceNumberGenerator
   - `tests/Functional/Service/NumberGenerator/InvoiceNumberGeneratorTest.php`
   - Format par défaut
   - Exercice comptable
@@ -384,12 +384,14 @@
   - Thread-safe (concurrence)
   - Les tests définissent le contrat de l'interface
 
-- [ ] 56. CODE : Créer interface + implémentation InvoiceNumberGenerator
+- [x] 56. CODE : Créer interface + implémentation InvoiceNumberGenerator
   - `src/Service/NumberGenerator/InvoiceNumberGeneratorInterface.php`
   - `src/Service/NumberGenerator/InvoiceNumberGenerator.php`
   - Lock Doctrine
   - Calcul exercice comptable
   - Les tests doivent passer
+
+**✅ Validation Task 55-56** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (17 tests, 52 assertions)
 
 ### PaymentManager
 
