@@ -406,7 +406,13 @@ final class PaymentManagerTest extends RepositoryTestCase
 
     // ========== Helper Methods ==========
 
-    private function createInvoiceWithAmount(float $amountExcludingVat, float $vatRate = 20.0): Invoice
+    /**
+     * Creates an invoice with a specified TOTAL amount including VAT.
+     *
+     * @param float $totalIncludingVat Total amount including VAT (e.g., 120.00)
+     * @param float $vatRate VAT rate in percentage (e.g., 20.0 for 20%)
+     */
+    private function createInvoiceWithAmount(float $totalIncludingVat, float $vatRate = 20.0): Invoice
     {
         $invoice = new Invoice(
             type: InvoiceType::INVOICE,
@@ -422,7 +428,11 @@ final class PaymentManagerTest extends RepositoryTestCase
         $invoice->setNumber('FA-2025-0001');
         $invoice->setCompanyId(1);
 
-        // Add a line to create the specified amount
+        // Calculate amount excluding VAT to achieve the desired total
+        // Formula: amountExcludingVat = totalIncludingVat / (1 + vatRate/100)
+        $amountExcludingVat = $totalIncludingVat / (1 + $vatRate / 100);
+
+        // Add a line to create the specified total amount
         $line = new InvoiceLine(
             description: 'Test Service',
             quantity: 1,

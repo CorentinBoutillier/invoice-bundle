@@ -23,3 +23,7 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator
         public: false
+
+    CorentinBoutillier\InvoiceBundle\Service\PaymentManagerInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\PaymentManager
+        public: false

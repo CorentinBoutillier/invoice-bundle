@@ -105,6 +105,19 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface',
             'CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator',
         )->setPublic(true);
+
+        // Register PaymentManager service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\PaymentManager')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\PaymentManager')
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('event_dispatcher'))
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\PaymentManagerInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\PaymentManager',
+        )->setPublic(true);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void
