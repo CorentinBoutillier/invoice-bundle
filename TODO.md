@@ -15,7 +15,7 @@
 - [x] Phase 3 : Entités - TDD (22 tâches) - Tâches 21-42
 - [x] Phase 4 : Repositories - TDD (4 tâches) - Tâches 43-46
 - [x] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 47-51
-- [ ] Phase 6 : Events & Subscribers - TDD (3 tâches) - Tâches 52-54
+- [x] Phase 6 : Events & Subscribers - TDD (3 tâches) - Tâches 52-54
 - [ ] Phase 7 : Services Métier - TDD (16 tâches) - Tâches 55-70
 - [ ] Phase 8 : Features Avancées - TDD (8 tâches) - Tâches 71-78
 - [ ] Phase 9 : Configuration & Intégration - TDD (5 tâches) - Tâches 79-83
@@ -345,13 +345,13 @@
 
 ### InvoiceHistorySubscriber (TDD)
 
-- [ ] 52. TEST : Tests pour InvoiceHistorySubscriber
+- [x] 52. TEST : Tests pour InvoiceHistorySubscriber
   - `tests/Unit/EventSubscriber/InvoiceHistorySubscriberTest.php`
   - Mock des Events (définir leur structure dans les tests)
   - Mock EventDispatcher
   - Vérifier enregistrement history pour chaque type d'event
 
-- [ ] 53. CODE : Créer les Events nécessaires
+- [x] 53. CODE : Créer les Events nécessaires
   - `src/Event/InvoiceCreatedEvent.php`
   - `src/Event/InvoiceUpdatedEvent.php`
   - `src/Event/InvoiceFinalizedEvent.php`
@@ -364,11 +364,11 @@
   - `src/Event/InvoicePdfGeneratedEvent.php`
   - Structure définie par les tests
 
-- [ ] 54. CODE : Implémenter InvoiceHistorySubscriber
+- [x] 54. CODE : Implémenter InvoiceHistorySubscriber
   - `src/EventSubscriber/InvoiceHistorySubscriber.php`
   - Les tests doivent passer
 
-**✓ Validation Phase 6** : PHPStan + CS Fixer + Tests 100%
+**✅ Validation Phase 6** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (341 tests, 746 assertions)
 
 ---
 
