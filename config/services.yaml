@@ -44,3 +44,7 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage
         public: true
+
+    CorentinBoutillier\InvoiceBundle\Service\InvoiceManagerInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\InvoiceManager
+        public: true

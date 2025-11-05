@@ -140,6 +140,60 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface',
             'CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator',
         )->setPublic(true);
+
+        // Register ConfigCompanyProvider with test data
+        $container->register('CorentinBoutillier\InvoiceBundle\Provider\ConfigCompanyProvider')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Provider\ConfigCompanyProvider')
+            ->addArgument([
+                'name' => 'Test Company SARL',
+                'address' => '123 Test Street, 75001 Paris, France',
+                'siret' => '12345678901234',
+                'vatNumber' => 'FR12345678901',
+                'email' => 'contact@testcompany.fr',
+                'phone' => '+33 1 23 45 67 89',
+                'bankName' => 'Test Bank',
+                'iban' => 'FR7612345678901234567890123',
+                'bic' => 'TESTFRPP',
+            ])
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface',
+            'CorentinBoutillier\InvoiceBundle\Provider\ConfigCompanyProvider',
+        )->setPublic(true);
+
+        // Register DueDateCalculator service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\DueDateCalculator')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\DueDateCalculator')
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\DueDateCalculatorInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\DueDateCalculator',
+        )->setPublic(true);
+
+        // Register InvoiceManager service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\InvoiceManager')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\InvoiceManager')
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('event_dispatcher'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\DueDateCalculatorInterface'))
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\InvoiceManagerInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\InvoiceManager',
+        )->setPublic(true);
+
+        // Make EventDispatcherInterface public for tests
+        $container->setAlias(
+            'Symfony\Component\EventDispatcher\EventDispatcherInterface',
+            'event_dispatcher',
+        )->setPublic(true);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void

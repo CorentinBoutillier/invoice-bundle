@@ -420,6 +420,7 @@ class Invoice
     {
         if (!$this->lines->contains($line)) {
             $this->lines->add($line);
+            $line->setInvoice($this);
         }
     }
 

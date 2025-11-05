@@ -34,6 +34,10 @@ class InvoiceLine
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $discountAmountCents = null;
 
+    #[ORM\ManyToOne(targetEntity: Invoice::class, inversedBy: 'lines')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?Invoice $invoice = null;
+
     public function __construct(
         string $description,
         float $quantity,
@@ -157,5 +161,15 @@ class InvoiceLine
         $vatAmount = $this->getVatAmount();
 
         return $totalBeforeVat->add($vatAmount);
+    }
+
+    public function getInvoice(): ?Invoice
+    {
+        return $this->invoice;
+    }
+
+    public function setInvoice(?Invoice $invoice): void
+    {
+        $this->invoice = $invoice;
     }
 }
