@@ -30,8 +30,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final class InvoiceHistorySubscriberTest extends TestCase
 {
+    /** @phpstan-ignore property.uninitialized */
     private EntityManagerInterface&MockObject $entityManager;
+    /** @phpstan-ignore property.uninitialized */
     private UserProviderInterface&MockObject $userProvider;
+    /** @phpstan-ignore property.uninitialized */
     private InvoiceHistorySubscriber $subscriber;
 
     protected function setUp(): void
@@ -227,6 +230,7 @@ final class InvoiceHistorySubscriberTest extends TestCase
 
                 return $history->getInvoice() === $invoice
                     && InvoiceHistoryAction::PAYMENT_RECEIVED === $history->getAction()
+                    && null !== $metadata
                     && 15000 === $metadata['amount_paid_cents']
                     && 5000 === $metadata['remaining_cents'];
             }));
@@ -389,7 +393,9 @@ final class InvoiceHistorySubscriberTest extends TestCase
             ->with($this->callback(function (InvoiceHistory $history) {
                 $metadata = $history->getMetadata();
 
-                return isset($metadata['user'])
+                return null !== $metadata
+                    && isset($metadata['user'])
+                    && \is_array($metadata['user'])
                     && 'Jane Smith' === $metadata['user']['name']
                     && 'jane@example.com' === $metadata['user']['email'];
             }));
@@ -442,11 +448,13 @@ final class InvoiceHistorySubscriberTest extends TestCase
     private function createInvoice(?InvoiceType $type = null): Invoice
     {
         return new Invoice(
+            type: $type ?? InvoiceType::INVOICE,
             date: new \DateTimeImmutable('2025-01-15'),
             dueDate: new \DateTimeImmutable('2025-02-14'),
-            type: $type ?? InvoiceType::INVOICE,
             customerName: 'Test Customer',
             customerAddress: '123 Test Street',
+            companyName: 'Test Company',
+            companyAddress: '456 Company Avenue',
         );
     }
 }
