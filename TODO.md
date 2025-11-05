@@ -412,19 +412,21 @@
 
 ### PdfGenerator
 
-- [ ] 59. TEST : Tests pour TwigPdfGenerator
+- [x] 59. TEST : Tests pour TwigPdfGenerator
   - `tests/Functional/Service/Pdf/TwigPdfGeneratorTest.php`
   - Génération PDF
   - Contenu présent (données facture)
   - Format correct
   - Les tests définissent le contrat de l'interface
 
-- [ ] 60. CODE : Créer template Twig + interface + implémentation
+- [x] 60. CODE : Créer template Twig + interface + implémentation
   - `templates/invoice/pdf.html.twig` (blocs overridables)
   - `src/Service/Pdf/PdfGeneratorInterface.php`
   - `src/Service/Pdf/TwigPdfGenerator.php`
   - Integration DomPDF
   - Les tests doivent passer
+
+**✅ Validation Task 59-60** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (388 tests, 873 assertions)
 
 ### PdfStorage
 
@@ -617,13 +619,14 @@
 ## 📊 Statistiques
 
 - **Total tâches** : 87 (3 tâches ajoutées pour Money Value Object)
-- **Tâches complétées** : 56 (Phases 0-6 + Tasks 55-58)
-- **Progression** : 64.4%
+- **Tâches complétées** : 60 (Phases 0-6 + Tasks 55-60)
+- **Progression** : 69.0%
 
-**Phase 7 Résultats (Tasks 55-58)** :
+**Phase 7 Résultats (Tasks 55-60)** :
 - InvoiceNumberGenerator : Génération numéros fiscaux thread-safe (17 tests)
 - PaymentManager : Gestion paiements avec events (18 tests)
-- 376 tests au total (848 assertions)
+- TwigPdfGenerator : Génération PDF avec DomPDF + templates Twig (12 tests)
+- 388 tests au total (873 assertions)
 - PHPStan niveau 9 : 0 erreurs
 - CS Fixer : 100% conforme
 
@@ -638,7 +641,7 @@
 
 ## 🎯 Prochaine étape
 
-👉 **Phase 7 - Tâche 59** : TEST - Écrire les tests pour TwigPdfGenerator
+👉 **Phase 7 - Tâche 61** : TEST - Écrire les tests pour FilesystemPdfStorage
 
 **Points clés Phase 7** :
 - Services métier avec logique business
