@@ -395,16 +395,20 @@
 
 ### PaymentManager
 
-- [ ] 57. TEST : Tests pour PaymentManager
+- [x] 57. TEST : Tests pour PaymentManager
   - `tests/Functional/Service/PaymentManagerTest.php`
-  - Enregistrement paiement avec Money
-  - Mise à jour statut
-  - Events dispatché
+  - 18 tests couvrant : enregistrement, status updates (PAID/PARTIALLY_PAID), events (InvoicePaidEvent/InvoicePartiallyPaidEvent)
+  - Validation (DRAFT/CANCELLED rejetés), optional fields (reference, notes)
+  - Edge cases (overpayment, zero payment, multiple partial payments)
   - Les tests définissent le contrat
 
-- [ ] 58. CODE : Implémenter PaymentManager
-  - `src/Service/PaymentManager.php`
-  - Les tests doivent passer
+- [x] 58. CODE : Implémenter PaymentManager
+  - `src/Service/PaymentManager.php` + `PaymentManagerInterface.php`
+  - recordPayment(): création Payment, lien Invoice, update status, dispatch events
+  - Validation status, EntityManager persistence, EventDispatcher integration
+  - Les tests passent (18/18)
+
+**✅ Validation Task 57-58** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (376 tests, 848 assertions)
 
 ### PdfGenerator
 
@@ -613,8 +617,15 @@
 ## 📊 Statistiques
 
 - **Total tâches** : 87 (3 tâches ajoutées pour Money Value Object)
-- **Tâches complétées** : 42 (Phases 0, 1, 2, 2.5, 3)
-- **Progression** : 48.3%
+- **Tâches complétées** : 56 (Phases 0-6 + Tasks 55-58)
+- **Progression** : 64.4%
+
+**Phase 7 Résultats (Tasks 55-58)** :
+- InvoiceNumberGenerator : Génération numéros fiscaux thread-safe (17 tests)
+- PaymentManager : Gestion paiements avec events (18 tests)
+- 376 tests au total (848 assertions)
+- PHPStan niveau 9 : 0 erreurs
+- CS Fixer : 100% conforme
 
 **Phase 3 Résultats** :
 - 5 entités implémentées (InvoiceSequence, InvoiceLine, Payment, Invoice, InvoiceHistory)
@@ -627,12 +638,13 @@
 
 ## 🎯 Prochaine étape
 
-👉 **Phase 4 - Tâche 43** : TEST - Écrire les tests pour InvoiceRepository
+👉 **Phase 7 - Tâche 59** : TEST - Écrire les tests pour TwigPdfGenerator
 
-**Points clés Phase 4** :
-- Repositories avec requêtes optimisées
-- Lock pessimiste pour InvoiceSequence (thread-safe)
-- Tests fonctionnels avec TestKernel + Doctrine
+**Points clés Phase 7** :
+- Services métier avec logique business
+- Génération PDF avec Twig + DomPDF
+- Storage filesystem avec organisation par date
+- Transaction atomique pour finalisation (InvoiceFinalizer)
 
 ## 📐 Principes TDD appliqués
 
