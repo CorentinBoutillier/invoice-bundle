@@ -13,7 +13,9 @@ use CorentinBoutillier\InvoiceBundle\Tests\Functional\Repository\RepositoryTestC
 
 final class FilesystemPdfStorageTest extends RepositoryTestCase
 {
+    /** @phpstan-ignore property.uninitialized */
     private FilesystemPdfStorage $storage;
+    /** @phpstan-ignore property.uninitialized */
     private string $tempBasePath;
 
     protected function setUp(): void
@@ -266,7 +268,7 @@ final class FilesystemPdfStorageTest extends RepositoryTestCase
 
         $this->assertTrue($this->storage->exists($path));
         $retrieved = $this->storage->retrieve($path);
-        $this->assertSame(strlen($largePdfContent), strlen($retrieved));
+        $this->assertSame(\strlen($largePdfContent), \strlen($retrieved));
     }
 
     public function testMultipleInvoicesSameMonth(): void
@@ -327,7 +329,7 @@ final class FilesystemPdfStorageTest extends RepositoryTestCase
 
         $items = array_diff(scandir($directory) ?: [], ['.', '..']);
         foreach ($items as $item) {
-            $path = $directory.DIRECTORY_SEPARATOR.$item;
+            $path = $directory.\DIRECTORY_SEPARATOR.$item;
             if (is_dir($path)) {
                 $this->recursiveRemoveDirectory($path);
             } else {

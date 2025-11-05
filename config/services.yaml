@@ -36,3 +36,11 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator
         public: false
+
+    CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage:
+        arguments:
+            $basePath: '%kernel.project_dir%/var/invoices'
+
+    CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage
+        public: true
