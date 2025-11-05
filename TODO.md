@@ -12,7 +12,7 @@
 - [x] Phase 1 : Enums - TDD (8 tâches) - Tâches 6-13
 - [x] Phase 2 : DTOs - TDD (4 tâches) - Tâches 14-17
 - [x] Phase 2.5 : Money Value Object - TDD (3 tâches) - Tâches 18-20
-- [ ] Phase 3 : Entités - TDD (22 tâches) - Tâches 21-42
+- [x] Phase 3 : Entités - TDD (22 tâches) - Tâches 21-42
 - [ ] Phase 4 : Repositories - TDD (4 tâches) - Tâches 43-46
 - [ ] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 47-51
 - [ ] Phase 6 : Events & Subscribers - TDD (3 tâches) - Tâches 52-54
@@ -165,119 +165,120 @@
 
 ### InvoiceSequence
 
-- [ ] 21. TEST : Écrire les tests pour InvoiceSequence
+- [x] 21. TEST : Écrire les tests pour InvoiceSequence
   - `tests/Unit/Entity/InvoiceSequenceTest.php`
   - Contrainte unique
   - Incrémentation
 
-- [ ] 22. CODE : Implémenter InvoiceSequence
+- [x] 22. CODE : Implémenter InvoiceSequence
   - `src/Entity/InvoiceSequence.php`
 
 ### InvoiceLine (calculs simples d'abord avec Money)
 
-- [ ] 23. TEST : Tests pour InvoiceLine (sans remises)
+- [x] 23. TEST : Tests pour InvoiceLine (sans remises)
   - `tests/Unit/Entity/InvoiceLineTest.php`
   - Création avec Money
   - Total HT simple (quantité × prix Money)
 
-- [ ] 24. CODE : Implémenter InvoiceLine (structure de base)
+- [x] 24. CODE : Implémenter InvoiceLine (structure de base)
   - `src/Entity/InvoiceLine.php`
   - Champs en centimes (int), pas encore de calculs complexes
   - Getters retournent Money
 
-- [ ] 25. TEST : Tests pour remises sur InvoiceLine
+- [x] 25. TEST : Tests pour remises sur InvoiceLine
   - Remise en %
   - Remise en montant fixe (Money)
   - Prix après remise (Money)
   - Total HT après remise (Money)
 
-- [ ] 26. CODE : Ajouter les méthodes de calcul des remises
+- [x] 26. CODE : Ajouter les méthodes de calcul des remises
   - `getUnitPriceAfterDiscount()` : retourne Money
   - `getTotalBeforeVat()` : retourne Money
 
-- [ ] 27. TEST : Tests pour TVA sur InvoiceLine
+- [x] 27. TEST : Tests pour TVA sur InvoiceLine
   - Calcul montant TVA (Money)
   - Total TTC (Money)
 
-- [ ] 28. CODE : Ajouter les méthodes de calcul TVA
+- [x] 28. CODE : Ajouter les méthodes de calcul TVA
   - `getVatAmount()` : retourne Money
   - `getTotalIncludingVat()` : retourne Money
 
 ### Payment
 
-- [ ] 29. TEST : Tests pour Payment
+- [x] 29. TEST : Tests pour Payment
   - `tests/Unit/Entity/PaymentTest.php`
   - Création avec Money
   - Relation Invoice
 
-- [ ] 30. CODE : Implémenter Payment
+- [x] 30. CODE : Implémenter Payment
   - `src/Entity/Payment.php`
   - Montant en centimes (int), getter retourne Money
   - Extensible (SINGLE_TABLE inheritance)
 
 ### Invoice (structure puis calculs avec Money)
 
-- [ ] 31. TEST : Tests pour Invoice (structure de base)
+- [x] 31. TEST : Tests pour Invoice (structure de base)
   - `tests/Unit/Entity/InvoiceTest.php`
   - Création
   - Ajout de lignes
   - Ajout de paiements
 
-- [ ] 32. CODE : Implémenter Invoice (structure de base)
+- [x] 32. CODE : Implémenter Invoice (structure de base)
   - `src/Entity/Invoice.php`
   - Champs, relations, pas encore de calculs
   - Remises globales en centimes (int)
 
-- [ ] 33. TEST : Tests pour calculs simples Invoice
+- [x] 33. TEST : Tests pour calculs simples Invoice
   - Sous-total (somme lignes HT) → Money
   - Total TVA → Money
   - Total TTC → Money
 
-- [ ] 34. CODE : Implémenter calculs simples
+- [x] 34. CODE : Implémenter calculs simples
   - `getSubtotalBeforeDiscount()` : retourne Money
   - `getTotalVat()` : retourne Money
   - `getTotalIncludingVat()` : retourne Money
 
-- [ ] 35. TEST : Tests pour remise globale Invoice
+- [x] 35. TEST : Tests pour remise globale Invoice
   - Remise globale %
   - Remise globale montant (Money)
   - Total après remise globale (Money)
 
-- [ ] 36. CODE : Implémenter remise globale
-  - `getGlobalDiscountValue()` : retourne Money
-  - `getTotalExcludingVat()` : retourne Money
+- [x] 36. CODE : Implémenter remise globale
+  - `getGlobalDiscountAmount()` : retourne Money
+  - `getSubtotalAfterDiscount()` : retourne Money
+  - `getTotalVat()` avec distribution proportionnelle
 
-- [ ] 37. TEST : Tests pour paiements Invoice
+- [x] 37. TEST : Tests pour paiements Invoice
   - Total payé (Money)
   - Reste à payer (Money)
   - isFullyPaid()
   - isPartiallyPaid()
 
-- [ ] 38. CODE : Implémenter méthodes paiements
+- [x] 38. CODE : Implémenter méthodes paiements
   - `getTotalPaid()` : retourne Money
   - `getRemainingAmount()` : retourne Money
   - `isFullyPaid()`
   - `isPartiallyPaid()`
 
-- [ ] 39. TEST : Tests pour échéances Invoice
+- [x] 39. TEST : Tests pour échéances Invoice
   - isOverdue()
   - getDaysOverdue()
 
-- [ ] 40. CODE : Implémenter méthodes échéances
+- [x] 40. CODE : Implémenter méthodes échéances
   - `isOverdue()`
   - `getDaysOverdue()`
 
 ### InvoiceHistory
 
-- [ ] 41. TEST : Tests pour InvoiceHistory
+- [x] 41. TEST : Tests pour InvoiceHistory
   - `tests/Unit/Entity/InvoiceHistoryTest.php`
   - Création
   - Données JSON
 
-- [ ] 42. CODE : Implémenter InvoiceHistory
+- [x] 42. CODE : Implémenter InvoiceHistory
   - `src/Entity/InvoiceHistory.php`
 
-**✓ Validation Phase 3** : PHPStan + CS Fixer + Tests 100%
+**✅ Validation Phase 3** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (260 tests, 570 assertions)
 
 ---
 
@@ -612,16 +613,26 @@
 ## 📊 Statistiques
 
 - **Total tâches** : 87 (3 tâches ajoutées pour Money Value Object)
-- **Tâches complétées** : 20 (Phases 0, 1, 2, 2.5)
-- **Progression** : 23.0%
+- **Tâches complétées** : 42 (Phases 0, 1, 2, 2.5, 3)
+- **Progression** : 48.3%
+
+**Phase 3 Résultats** :
+- 5 entités implémentées (InvoiceSequence, InvoiceLine, Payment, Invoice, InvoiceHistory)
+- 260 tests unitaires (570 assertions)
+- PHPStan niveau 9 : 0 erreurs
+- CS Fixer : 100% conforme
+- Conformité légale française : TVA calculée après remise globale
 
 ---
 
 ## 🎯 Prochaine étape
 
-👉 **Phase 3 - Tâche 21** : TEST - Écrire les tests pour InvoiceSequence
+👉 **Phase 4 - Tâche 43** : TEST - Écrire les tests pour InvoiceRepository
 
-**Décision architecturale appliquée** : Integers (centimes) + Money Value Object au lieu de BCMath ✅
+**Points clés Phase 4** :
+- Repositories avec requêtes optimisées
+- Lock pessimiste pour InvoiceSequence (thread-safe)
+- Tests fonctionnels avec TestKernel + Doctrine
 
 ## 📐 Principes TDD appliqués
 
