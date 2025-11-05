@@ -16,6 +16,7 @@ return (new PhpCsFixer\Config())
         'trailing_comma_in_multiline' => ['elements' => ['arrays', 'arguments', 'parameters']],
         'single_line_throw' => false,
         'phpdoc_align' => false,
+        'phpdoc_to_comment' => false, // Keep PHPStan type annotations
     ])
     ->setRiskyAllowed(true)
     ->setFinder($finder);

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace CorentinBoutillier\InvoiceBundle\Entity;
 
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Repository\InvoiceSequenceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: InvoiceSequenceRepository::class)]
 #[ORM\Table(name: 'invoice_sequence')]
 #[ORM\UniqueConstraint(name: 'unique_sequence', columns: ['company_id', 'fiscal_year', 'type'])]
 class InvoiceSequence

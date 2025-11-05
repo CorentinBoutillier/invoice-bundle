@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
@@ -78,6 +79,19 @@ class TestKernel extends Kernel
                 ],
             ],
         ]);
+
+        // Register repositories as services
+        $container->register('CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository')
+            ->addArgument(new Reference('doctrine'))
+            ->addTag('doctrine.repository_service')
+            ->setPublic(true);
+
+        $container->register('CorentinBoutillier\InvoiceBundle\Repository\InvoiceSequenceRepository')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Repository\InvoiceSequenceRepository')
+            ->addArgument(new Reference('doctrine'))
+            ->addTag('doctrine.repository_service')
+            ->setPublic(true);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void

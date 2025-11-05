@@ -7,11 +7,12 @@ namespace CorentinBoutillier\InvoiceBundle\Entity;
 use CorentinBoutillier\InvoiceBundle\DTO\Money;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: InvoiceRepository::class)]
 #[ORM\Table(name: 'invoice')]
 #[ORM\HasLifecycleCallbacks]
 class Invoice
@@ -29,6 +30,12 @@ class Invoice
 
     #[ORM\Column(type: 'string', length: 50, nullable: true, unique: true)]
     private ?string $number = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $companyId = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $fiscalYear = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $date;
@@ -173,6 +180,26 @@ class Invoice
     public function setNumber(?string $number): void
     {
         $this->number = $number;
+    }
+
+    public function getCompanyId(): ?int
+    {
+        return $this->companyId;
+    }
+
+    public function setCompanyId(?int $companyId): void
+    {
+        $this->companyId = $companyId;
+    }
+
+    public function getFiscalYear(): ?int
+    {
+        return $this->fiscalYear;
+    }
+
+    public function setFiscalYear(?int $fiscalYear): void
+    {
+        $this->fiscalYear = $fiscalYear;
     }
 
     public function getDate(): \DateTimeImmutable
