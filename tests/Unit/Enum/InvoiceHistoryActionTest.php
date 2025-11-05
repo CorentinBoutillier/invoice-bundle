@@ -13,29 +13,27 @@ class InvoiceHistoryActionTest extends TestCase
     {
         $cases = InvoiceHistoryAction::cases();
 
-        $this->assertCount(9, $cases);
+        $this->assertCount(8, $cases);
         $this->assertContains(InvoiceHistoryAction::CREATED, $cases);
-        $this->assertContains(InvoiceHistoryAction::UPDATED, $cases);
         $this->assertContains(InvoiceHistoryAction::FINALIZED, $cases);
         $this->assertContains(InvoiceHistoryAction::SENT, $cases);
-        $this->assertContains(InvoiceHistoryAction::PAYMENT_RECORDED, $cases);
-        $this->assertContains(InvoiceHistoryAction::STATUS_CHANGED, $cases);
+        $this->assertContains(InvoiceHistoryAction::PAID, $cases);
+        $this->assertContains(InvoiceHistoryAction::PAYMENT_RECEIVED, $cases);
         $this->assertContains(InvoiceHistoryAction::CANCELLED, $cases);
-        $this->assertContains(InvoiceHistoryAction::PDF_GENERATED, $cases);
-        $this->assertContains(InvoiceHistoryAction::PDF_DOWNLOADED, $cases);
+        $this->assertContains(InvoiceHistoryAction::STATUS_CHANGED, $cases);
+        $this->assertContains(InvoiceHistoryAction::EDITED, $cases);
     }
 
     public function testValuesAreCorrect(): void
     {
         $this->assertSame('created', InvoiceHistoryAction::CREATED->value);
-        $this->assertSame('updated', InvoiceHistoryAction::UPDATED->value);
         $this->assertSame('finalized', InvoiceHistoryAction::FINALIZED->value);
         $this->assertSame('sent', InvoiceHistoryAction::SENT->value);
-        $this->assertSame('payment_recorded', InvoiceHistoryAction::PAYMENT_RECORDED->value);
-        $this->assertSame('status_changed', InvoiceHistoryAction::STATUS_CHANGED->value);
+        $this->assertSame('paid', InvoiceHistoryAction::PAID->value);
+        $this->assertSame('payment_received', InvoiceHistoryAction::PAYMENT_RECEIVED->value);
         $this->assertSame('cancelled', InvoiceHistoryAction::CANCELLED->value);
-        $this->assertSame('pdf_generated', InvoiceHistoryAction::PDF_GENERATED->value);
-        $this->assertSame('pdf_downloaded', InvoiceHistoryAction::PDF_DOWNLOADED->value);
+        $this->assertSame('status_changed', InvoiceHistoryAction::STATUS_CHANGED->value);
+        $this->assertSame('edited', InvoiceHistoryAction::EDITED->value);
     }
 
     public function testFromMethodReturnsCorrectCase(): void
@@ -43,7 +41,7 @@ class InvoiceHistoryActionTest extends TestCase
         $this->assertSame(InvoiceHistoryAction::CREATED, InvoiceHistoryAction::from('created'));
         $this->assertSame(InvoiceHistoryAction::FINALIZED, InvoiceHistoryAction::from('finalized'));
         $this->assertSame(InvoiceHistoryAction::SENT, InvoiceHistoryAction::from('sent'));
-        $this->assertSame(InvoiceHistoryAction::PAYMENT_RECORDED, InvoiceHistoryAction::from('payment_recorded'));
+        $this->assertSame(InvoiceHistoryAction::PAYMENT_RECEIVED, InvoiceHistoryAction::from('payment_received'));
         $this->assertSame(InvoiceHistoryAction::CANCELLED, InvoiceHistoryAction::from('cancelled'));
     }
 
@@ -61,6 +59,6 @@ class InvoiceHistoryActionTest extends TestCase
     public function testTryFromMethodReturnsCorrectCase(): void
     {
         $this->assertSame(InvoiceHistoryAction::CREATED, InvoiceHistoryAction::tryFrom('created'));
-        $this->assertSame(InvoiceHistoryAction::PDF_GENERATED, InvoiceHistoryAction::tryFrom('pdf_generated'));
+        $this->assertSame(InvoiceHistoryAction::PAID, InvoiceHistoryAction::tryFrom('paid'));
     }
 }

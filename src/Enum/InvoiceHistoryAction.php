@@ -7,12 +7,11 @@ namespace CorentinBoutillier\InvoiceBundle\Enum;
 enum InvoiceHistoryAction: string
 {
     case CREATED = 'created';
-    case UPDATED = 'updated';
     case FINALIZED = 'finalized';
     case SENT = 'sent';
-    case PAYMENT_RECORDED = 'payment_recorded';
-    case STATUS_CHANGED = 'status_changed';
+    case PAID = 'paid';
+    case PAYMENT_RECEIVED = 'payment_received';
     case CANCELLED = 'cancelled';
-    case PDF_GENERATED = 'pdf_generated';
-    case PDF_DOWNLOADED = 'pdf_downloaded';
+    case STATUS_CHANGED = 'status_changed';
+    case EDITED = 'edited';
 }
