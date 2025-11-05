@@ -496,6 +496,7 @@ final class InvoiceRepositoryTest extends RepositoryTestCase
             paidAt: new \DateTimeImmutable(),
             method: PaymentMethod::BANK_TRANSFER,
         );
+        $payment->setInvoice($partiallyPaid);
         $partiallyPaid->addPayment($payment);
         $this->entityManager->persist($partiallyPaid);
         $this->entityManager->persist($payment);
@@ -513,6 +514,7 @@ final class InvoiceRepositoryTest extends RepositoryTestCase
             paidAt: new \DateTimeImmutable(),
             method: PaymentMethod::BANK_TRANSFER,
         );
+        $paymentFull->setInvoice($fullyPaid);
         $fullyPaid->addPayment($paymentFull);
         $this->entityManager->persist($fullyPaid);
         $this->entityManager->persist($paymentFull);

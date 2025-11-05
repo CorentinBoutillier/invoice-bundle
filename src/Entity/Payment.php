@@ -20,6 +20,10 @@ class Payment
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: Invoice::class, inversedBy: 'payments')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private Invoice $invoice; // @phpstan-ignore property.uninitialized
+
     #[ORM\Column(type: 'integer')]
     private int $amountCents;
 
@@ -48,6 +52,16 @@ class Payment
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getInvoice(): Invoice
+    {
+        return $this->invoice;
+    }
+
+    public function setInvoice(Invoice $invoice): void
+    {
+        $this->invoice = $invoice;
     }
 
     public function getAmount(): Money
