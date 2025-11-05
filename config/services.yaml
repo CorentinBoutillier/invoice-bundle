@@ -18,3 +18,8 @@ services:
 
     CorentinBoutillier\InvoiceBundle\Validator\:
         resource: '../src/Validator/*'
+
+    # Alias for interface to implementation
+    CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator
+        public: false

@@ -92,6 +92,19 @@ class TestKernel extends Kernel
             ->addArgument(new Reference('doctrine'))
             ->addTag('doctrine.repository_service')
             ->setPublic(true);
+
+        // Register InvoiceNumberGenerator service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator')
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Repository\InvoiceSequenceRepository'))
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator',
+        )->setPublic(true);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void

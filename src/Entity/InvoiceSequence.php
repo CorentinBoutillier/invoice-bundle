@@ -79,6 +79,14 @@ class InvoiceSequence
         ++$this->lastNumber;
     }
 
+    /**
+     * Set the last number (useful for testing).
+     */
+    public function setLastNumber(int $lastNumber): void
+    {
+        $this->lastNumber = $lastNumber;
+    }
+
     public function containsDate(\DateTimeImmutable $date): bool
     {
         return $date >= $this->startDate && $date <= $this->endDate;
