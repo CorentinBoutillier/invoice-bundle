@@ -430,17 +430,19 @@
 
 ### PdfStorage
 
-- [ ] 61. TEST : Tests pour FilesystemPdfStorage
+- [x] 61. TEST : Tests pour FilesystemPdfStorage
   - `tests/Functional/Service/Pdf/Storage/FilesystemPdfStorageTest.php`
   - Store
   - Retrieve
   - Organisation par date
   - Les tests définissent le contrat de l'interface
 
-- [ ] 62. CODE : Créer interface + implémentation FilesystemPdfStorage
+- [x] 62. CODE : Créer interface + implémentation FilesystemPdfStorage
   - `src/Service/Pdf/Storage/PdfStorageInterface.php`
   - `src/Service/Pdf/Storage/FilesystemPdfStorage.php`
   - Les tests doivent passer
+
+**✅ Validation Task 61-62** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (409 tests, 916 assertions)
 
 ### InvoiceManager
 
@@ -619,14 +621,15 @@
 ## 📊 Statistiques
 
 - **Total tâches** : 87 (3 tâches ajoutées pour Money Value Object)
-- **Tâches complétées** : 60 (Phases 0-6 + Tasks 55-60)
-- **Progression** : 69.0%
+- **Tâches complétées** : 62 (Phases 0-6 + Tasks 55-62)
+- **Progression** : 71.3%
 
-**Phase 7 Résultats (Tasks 55-60)** :
+**Phase 7 Résultats (Tasks 55-62)** :
 - InvoiceNumberGenerator : Génération numéros fiscaux thread-safe (17 tests)
 - PaymentManager : Gestion paiements avec events (18 tests)
 - TwigPdfGenerator : Génération PDF avec DomPDF + templates Twig (12 tests)
-- 388 tests au total (873 assertions)
+- FilesystemPdfStorage : Stockage filesystem avec flock + sécurité (21 tests)
+- 409 tests au total (916 assertions)
 - PHPStan niveau 9 : 0 erreurs
 - CS Fixer : 100% conforme
 
@@ -641,7 +644,7 @@
 
 ## 🎯 Prochaine étape
 
-👉 **Phase 7 - Tâche 61** : TEST - Écrire les tests pour FilesystemPdfStorage
+👉 **Phase 7 - Tâche 63** : TEST - Écrire les tests pour InvoiceManager (création)
 
 **Points clés Phase 7** :
 - Services métier avec logique business
