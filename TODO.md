@@ -16,10 +16,10 @@
 - [x] Phase 4 : Repositories - TDD (4 tâches) - Tâches 43-46
 - [x] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 47-51
 - [x] Phase 6 : Events & Subscribers - TDD (3 tâches) - Tâches 52-54
-- [ ] Phase 7 : Services Métier - TDD (16 tâches) - Tâches 55-70
-- [ ] Phase 8 : Features Avancées - TDD (8 tâches) - Tâches 71-78
-- [ ] Phase 9 : Configuration & Intégration - TDD (5 tâches) - Tâches 79-83
-- [ ] Phase 10 : Documentation & Validation finale (4 tâches) - Tâches 84-87
+- [~] Phase 7 : Services Métier - TDD (12 tâches) - Tâches 55-66 (10/12 complétées - 83.3%)
+- [ ] Phase 8 : Features Avancées - TDD (8 tâches) - Tâches 67-74
+- [ ] Phase 9 : Configuration & Intégration - TDD (5 tâches) - Tâches 75-79
+- [ ] Phase 10 : Documentation & Validation finale (4 tâches) - Tâches 80-83
 
 ---
 
@@ -446,40 +446,34 @@
 
 ### InvoiceManager
 
-- [ ] 63. TEST : Tests pour InvoiceManager (création)
+- [x] 63. TEST : Tests pour InvoiceManager (complet)
   - `tests/Functional/Service/InvoiceManagerTest.php`
-  - Création facture
-  - Création avoir
-  - Ajout lignes
-  - Calculs automatiques avec Money
+  - 47 tests couvrant toutes les opérations:
+    * Création facture/avoir avec snapshots (15 tests)
+    * Ajout lignes avec validation (10 tests)
+    * Modification brouillon champs mutables (7 tests)
+    * Annulation DRAFT uniquement (7 tests)
+    * Validations strictes (8 tests)
 
-- [ ] 64. CODE : Implémenter InvoiceManager (partie création)
-  - `src/Service/InvoiceManager.php`
-  - createInvoice()
-  - createCreditNote()
-  - addLine()
-  - Les tests doivent passer
+- [x] 64. CODE : Implémenter InvoiceManager (complet)
+  - `src/Service/InvoiceManager.php` + `InvoiceManagerInterface.php`
+  - Toutes les méthodes implémentées:
+    * createInvoice() - Snapshots company/customer data
+    * createCreditNote() - Avec lien facture optionnel
+    * addLine() - DRAFT uniquement
+    * updateInvoice() - Champs mutables uniquement (email, phone, terms, dueDate, discount)
+    * cancelInvoice() - DRAFT uniquement avec raison optionnelle
+  - Validation stricte (noms/adresses requis, due date >= invoice date)
+  - Events dispatched (4 types: Created, Updated, Cancelled, CreditNote)
+  - Les tests passent (47/47)
 
-- [ ] 65. TEST : Tests pour InvoiceManager (mise à jour)
-  - Modification brouillon
-  - Interdiction modification finalisée
+**Note**: Tasks 65-68 initialement prévues (mise à jour/annulation séparées) ont été intégrées dans l'implémentation complète Tasks 63-64
 
-- [ ] 66. CODE : Implémenter InvoiceManager (mise à jour)
-  - updateInvoice()
-  - Validations
-  - Les tests doivent passer
-
-- [ ] 67. TEST : Tests pour InvoiceManager (annulation)
-  - Annulation avec raison
-  - Event dispatché
-
-- [ ] 68. CODE : Implémenter InvoiceManager (annulation)
-  - cancelInvoice()
-  - Les tests doivent passer
+**✅ Validation Task 63-64** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (456 tests, 1003 assertions)
 
 ### InvoiceFinalizer
 
-- [ ] 69. TEST : Tests pour InvoiceFinalizer
+- [ ] 65. TEST : Tests pour InvoiceFinalizer
   - `tests/Functional/Service/InvoiceFinalizerTest.php`
   - Finalisation complète
   - Transaction atomique
@@ -489,7 +483,7 @@
   - PDF généré et stocké
   - Events
 
-- [ ] 70. CODE : Implémenter InvoiceFinalizer
+- [ ] 66. CODE : Implémenter InvoiceFinalizer
   - `src/Service/InvoiceFinalizer.php`
   - Transaction complète
   - Gestion erreurs
@@ -503,32 +497,32 @@
 
 ### Factur-X
 
-- [ ] 71. TEST : Tests pour FacturXGenerator
+- [ ] 67. TEST : Tests pour FacturXGenerator
   - `tests/Functional/Service/FacturX/FacturXGeneratorTest.php`
   - Génération XML
   - Embarquement dans PDF
   - Validation format EN 16931
   - Les tests définissent le contrat de l'interface
 
-- [ ] 72. CODE : Créer interface + implémentation FacturXGenerator
+- [ ] 68. CODE : Créer interface + implémentation FacturXGenerator
   - `src/Service/FacturX/FacturXGeneratorInterface.php`
   - `src/Service/FacturX/FacturXGenerator.php`
   - XML EN 16931
   - Profiles (BASIC, etc.)
   - Les tests doivent passer
 
-- [ ] 73. TEST : Tests pour intégration Factur-X dans InvoiceFinalizer
+- [ ] 69. TEST : Tests pour intégration Factur-X dans InvoiceFinalizer
   - Factur-X activé → PDF avec XML
   - Factur-X désactivé → PDF standard
 
-- [ ] 74. CODE : Intégrer Factur-X dans InvoiceFinalizer
+- [ ] 70. CODE : Intégrer Factur-X dans InvoiceFinalizer
   - Option config facturx.enabled
   - Utiliser FacturXGenerator si activé
   - Les tests doivent passer
 
 ### Export FEC
 
-- [ ] 75. TEST : Tests pour FecExporter
+- [ ] 71. TEST : Tests pour FecExporter
   - `tests/Functional/Service/Fec/FecExporterTest.php`
   - Format CSV correct
   - 18 colonnes conformes
@@ -536,18 +530,18 @@
   - Calculs corrects (montants Money)
   - Les tests définissent le contrat de l'interface
 
-- [ ] 76. CODE : Créer interface + implémentation FecExporter
+- [ ] 72. CODE : Créer interface + implémentation FecExporter
   - `src/Service/Fec/FecExporterInterface.php`
   - `src/Service/Fec/FecExporter.php`
   - Les tests doivent passer
 
-- [ ] 77. TEST : Tests pour ExportFecCommand
+- [ ] 73. TEST : Tests pour ExportFecCommand
   - `tests/Functional/Command/ExportFecCommandTest.php`
   - Arguments (exercice, société)
   - Output généré
   - Contenu valide
 
-- [ ] 78. CODE : Implémenter ExportFecCommand
+- [ ] 74. CODE : Implémenter ExportFecCommand
   - `src/Command/ExportFecCommand.php`
   - Les tests doivent passer
 
@@ -557,7 +551,7 @@
 
 ## 🔧 Phase 9 : Configuration & Intégration - TDD
 
-- [ ] 79. TEST : Tests d'intégration pour configuration bundle
+- [ ] 75. TEST : Tests d'intégration pour configuration bundle
   - `tests/Functional/DependencyInjection/InvoiceBundleExtensionTest.php`
   - Chargement des paramètres YAML
   - Valeurs par défaut
@@ -565,7 +559,7 @@
   - Aliases corrects
   - Enregistrement MoneyType Doctrine
 
-- [ ] 80. CODE : Compléter Configuration.php + services.yaml
+- [ ] 76. CODE : Compléter Configuration.php + services.yaml
   - `src/DependencyInjection/Configuration.php`
   - `config/services.yaml`
   - Tous les paramètres YAML
@@ -573,19 +567,19 @@
   - Tags et Aliases
   - Les tests doivent passer
 
-- [ ] 81. TEST : Tests pour schéma Doctrine
+- [ ] 77. TEST : Tests pour schéma Doctrine
   - `tests/Functional/Entity/SchemaValidationTest.php`
   - Validation du schéma
   - Contraintes uniques
   - Index
   - Type Money enregistré
 
-- [ ] 82. CODE : Créer les migrations Doctrine
+- [ ] 78. CODE : Créer les migrations Doctrine
   - Pour toutes les entités
   - Script propre
   - Les tests doivent passer
 
-- [ ] 83. TEST : Test d'intégration complet end-to-end
+- [ ] 79. TEST : Test d'intégration complet end-to-end
   - `tests/Functional/Integration/CompleteInvoiceWorkflowTest.php`
   - Créer facture → Finaliser → Payer → Export FEC
   - Workflow complet avec tous les services
@@ -597,22 +591,22 @@
 
 ## 📚 Phase 10 : Documentation & Validation finale
 
-- [ ] 84. Mettre à jour README.md
+- [ ] 80. Mettre à jour README.md
   - Installation
   - Configuration
   - Utilisation avec Money
   - Tests
 
-- [ ] 85. Créer USAGE.md
+- [ ] 81. Créer USAGE.md
   - Exemples concrets avec Money
   - Cas d'usage
   - Extension
 
-- [ ] 86. VALIDATION FINALE : PHPStan niveau 9
+- [ ] 82. VALIDATION FINALE : PHPStan niveau 9
   - 0 erreurs
   - 0 warnings
 
-- [ ] 87. VALIDATION FINALE : Couverture de code > 90%
+- [ ] 83. VALIDATION FINALE : Couverture de code > 90%
   - `make test-coverage`
   - Vérifier toutes les branches
 
@@ -620,16 +614,17 @@
 
 ## 📊 Statistiques
 
-- **Total tâches** : 87 (3 tâches ajoutées pour Money Value Object)
-- **Tâches complétées** : 62 (Phases 0-6 + Tasks 55-62)
-- **Progression** : 71.3%
+- **Total tâches** : 83 (Tasks 65-68 fusionnées dans 63-64)
+- **Tâches complétées** : 64 (Phases 0-6 + Tasks 55-64)
+- **Progression** : 77.1%
 
-**Phase 7 Résultats (Tasks 55-62)** :
+**Phase 7 Résultats (Tasks 55-64)** :
 - InvoiceNumberGenerator : Génération numéros fiscaux thread-safe (17 tests)
 - PaymentManager : Gestion paiements avec events (18 tests)
 - TwigPdfGenerator : Génération PDF avec DomPDF + templates Twig (12 tests)
 - FilesystemPdfStorage : Stockage filesystem avec flock + sécurité (21 tests)
-- 409 tests au total (916 assertions)
+- InvoiceManager : Gestion complète factures/avoirs avec snapshots (47 tests)
+- 456 tests au total (1003 assertions)
 - PHPStan niveau 9 : 0 erreurs
 - CS Fixer : 100% conforme
 
@@ -644,13 +639,13 @@
 
 ## 🎯 Prochaine étape
 
-👉 **Phase 7 - Tâche 63** : TEST - Écrire les tests pour InvoiceManager (création)
+👉 **Phase 7 - Tâche 65** : TEST - Écrire les tests pour InvoiceFinalizer
 
-**Points clés Phase 7** :
-- Services métier avec logique business
-- Génération PDF avec Twig + DomPDF
-- Storage filesystem avec organisation par date
-- Transaction atomique pour finalisation (InvoiceFinalizer)
+**Points clés InvoiceFinalizer** :
+- Transaction atomique complète (numéro + PDF + storage)
+- Rollback automatique sur échec
+- Coordination InvoiceNumberGenerator + PdfGenerator + PdfStorage
+- Events dispatched (InvoiceFinalizedEvent, InvoicePdfGeneratedEvent)
 
 ## 📐 Principes TDD appliqués
 
