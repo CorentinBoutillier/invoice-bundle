@@ -13,7 +13,7 @@
 - [x] Phase 2 : DTOs - TDD (4 tâches) - Tâches 14-17
 - [x] Phase 2.5 : Money Value Object - TDD (3 tâches) - Tâches 18-20
 - [x] Phase 3 : Entités - TDD (22 tâches) - Tâches 21-42
-- [ ] Phase 4 : Repositories - TDD (4 tâches) - Tâches 43-46
+- [x] Phase 4 : Repositories - TDD (4 tâches) - Tâches 43-46
 - [ ] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 47-51
 - [ ] Phase 6 : Events & Subscribers - TDD (3 tâches) - Tâches 52-54
 - [ ] Phase 7 : Services Métier - TDD (16 tâches) - Tâches 55-70
@@ -282,26 +282,27 @@
 
 ---
 
-## 📂 Phase 4 : Repositories - TDD
+## 📂 Phase 4 : Repositories - TDD ✅
 
-- [ ] 43. TEST : Tests pour InvoiceRepository
+- [x] 43. TEST : Tests pour InvoiceRepository
   - `tests/Functional/Repository/InvoiceRepositoryTest.php`
-  - Méthodes custom de recherche
+  - 14 tests fonctionnels (business queries, FEC export, snapshots-based customer search)
 
-- [ ] 44. CODE : Implémenter InvoiceRepository
+- [x] 44. CODE : Implémenter InvoiceRepository
   - `src/Repository/InvoiceRepository.php`
-  - Requêtes optimisées
+  - 8 méthodes optimisées avec QueryBuilder (multi-company support)
 
-- [ ] 45. TEST : Tests pour InvoiceSequenceRepository
-  - Lock pour numérotation
-  - findForUpdate()
+- [x] 45. TEST : Tests pour InvoiceSequenceRepository
+  - `tests/Functional/Repository/InvoiceSequenceRepositoryTest.php`
+  - 15 tests incluant thread-safety, pessimistic locking, fiscal year calculations
 
-- [ ] 46. CODE : Implémenter InvoiceSequenceRepository
+- [x] 46. CODE : Implémenter InvoiceSequenceRepository
   - `src/Repository/InvoiceSequenceRepository.php`
+  - PESSIMISTIC_WRITE lock, fiscal year logic, NULL handling
 
 **Note** : PaymentRepository et InvoiceHistoryRepository basiques (pas de tests si pas de logique custom)
 
-**✓ Validation Phase 4** : PHPStan + CS Fixer + Tests 100%
+**✅ Validation Phase 4** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (292 tests, 655 assertions)
 
 ---
 
