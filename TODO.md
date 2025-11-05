@@ -14,7 +14,7 @@
 - [x] Phase 2.5 : Money Value Object - TDD (3 tâches) - Tâches 18-20
 - [x] Phase 3 : Entités - TDD (22 tâches) - Tâches 21-42
 - [x] Phase 4 : Repositories - TDD (4 tâches) - Tâches 43-46
-- [ ] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 47-51
+- [x] Phase 5 : Providers & Interfaces - TDD (5 tâches) - Tâches 47-51
 - [ ] Phase 6 : Events & Subscribers - TDD (3 tâches) - Tâches 52-54
 - [ ] Phase 7 : Services Métier - TDD (16 tâches) - Tâches 55-70
 - [ ] Phase 8 : Features Avancées - TDD (8 tâches) - Tâches 71-78
@@ -306,41 +306,38 @@
 
 ---
 
-## 🔌 Phase 5 : Providers & Interfaces - TDD
+## 🔌 Phase 5 : Providers & Interfaces - TDD ✅
 
 ### CompanyProvider
 
-- [ ] 47. TEST : Tests pour ConfigCompanyProvider
+- [x] 47. TEST : Tests pour ConfigCompanyProvider
   - `tests/Unit/Provider/ConfigCompanyProviderTest.php`
-  - Mock de configuration
-  - Les tests définissent le contrat de l'interface
+  - 10 tests (minimal config, complete config, fiscal year, multi-company exception)
 
-- [ ] 48. CODE : Créer interface CompanyProviderInterface + implémentation
+- [x] 48. CODE : Créer interface CompanyProviderInterface + implémentation
   - `src/Provider/CompanyProviderInterface.php`
   - `src/Provider/ConfigCompanyProvider.php`
-  - Les tests doivent passer
+  - Type-safe config mapping, mono-company only
 
 ### UserProvider
 
-- [ ] 49. CODE : Créer interface UserProviderInterface (simple contrat, pas d'implémentation)
+- [x] 49. CODE : Créer UserData DTO + UserProviderInterface (interface-only)
+  - `src/DTO/UserData.php` (id, name, email)
   - `src/Provider/UserProviderInterface.php`
-  - Sera implémenté par l'app cliente
+  - Pas d'implémentation bundle (responsabilité app)
 
 ### DueDateCalculator
 
-- [ ] 50. TEST : Tests pour DueDateCalculator
+- [x] 50. TEST : Tests pour DueDateCalculator
   - `tests/Unit/Service/DueDateCalculatorTest.php`
-  - 30j net
-  - 45j fin de mois
-  - Comptant
-  - Les tests définissent le contrat de l'interface
+  - 21 tests (comptant, jours net, fin de mois, edge cases, leap year, fallback)
 
-- [ ] 51. CODE : Créer interface + implémentation DueDateCalculator
+- [x] 51. CODE : Créer interface + implémentation DueDateCalculator
   - `src/Service/DueDateCalculatorInterface.php`
   - `src/Service/DueDateCalculator.php`
-  - Les tests doivent passer
+  - Regex parsing, end-of-month helper, French payment terms
 
-**✓ Validation Phase 5** : PHPStan + CS Fixer + Tests 100%
+**✅ Validation Phase 5** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (323 tests, 708 assertions)
 
 ---
 
