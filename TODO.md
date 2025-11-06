@@ -473,20 +473,37 @@
 
 ### InvoiceFinalizer
 
-- [ ] 65. TEST : Tests pour InvoiceFinalizer
-  - `tests/Functional/Service/InvoiceFinalizerTest.php`
-  - Finalisation complète
-  - Transaction atomique
-  - Rollback sur échec PDF
-  - Rollback sur échec storage
-  - Numéro attribué
-  - PDF généré et stocké
-  - Events
+- [x] 65. TEST : Tests pour InvoiceFinalizer ✅ **DONE**
+  - `tests/Functional/Service/InvoiceFinalizerTest.php` (689 lignes, 23 tests)
+  - Tests de succès (7 tests) : finalisation complète, numéro, status, PDF, storage
+  - Tests d'événements (3 tests) : InvoiceFinalizedEvent, InvoicePdfGeneratedEvent
+  - Tests de validation (4 tests) : sans ligne, déjà finalisée, cancelled, paid
+  - Tests transactionnels (6 tests) : rollback PDF, rollback storage, séquence non consommée
+  - Tests types (2 tests) : invoice (FA-*), credit note (AV-*)
+  - Tests configuration (1 test) : CompanyData passé au générateur PDF
 
-- [ ] 66. CODE : Implémenter InvoiceFinalizer
-  - `src/Service/InvoiceFinalizer.php`
-  - Transaction complète
-  - Gestion erreurs
+- [x] 66. CODE : Implémenter InvoiceFinalizer ✅ **DONE**
+  - `src/Service/InvoiceFinalizer.php` (93 lignes) - Service principal avec transaction atomique
+  - `src/Service/InvoiceFinalizerInterface.php` (18 lignes) - Interface du service
+  - `src/Exception/InvoiceFinalizationException.php` (9 lignes) - Exception métier
+  - Transaction BEGIN/COMMIT/ROLLBACK complète
+  - Validation stricte (DRAFT + au moins 1 ligne)
+  - Génération numéro séquentiel avec CompanyData (année fiscale)
+  - Génération PDF avec données société
+  - Stockage PDF sur filesystem
+  - Enregistrement metadata (pdfPath, pdfGeneratedAt) sur Invoice
+  - Dispatch 2 événements après commit réussi
+  - Rollback complet en cas d'échec (séquence non consommée)
+  - Modifications liées :
+    * `src/Entity/Invoice.php` : Ajout pdfPath, pdfGeneratedAt, hasPdf()
+    * `src/Event/InvoicePdfGeneratedEvent.php` : Changé pdfPath → pdfContent (binary)
+    * `src/Service/Pdf/PdfGeneratorInterface.php` : Ajout paramètre CompanyData
+    * `src/Service/Pdf/TwigPdfGenerator.php` : Utilise CompanyData
+    * `src/EventSubscriber/InvoiceHistorySubscriber.php` : Récupère pdfPath depuis invoice
+    * `tests/Functional/Service/Pdf/TwigPdfGeneratorTest.php` : Mise à jour appels
+    * `tests/Unit/EventSubscriber/InvoiceHistorySubscriberTest.php` : Correction test PDF
+
+**✅ Validation Tasks 65-66** : PHPStan niveau 9 (0 erreurs) + CS Fixer (100%) + Tests 100% (479 tests, 1051 assertions)
   - Les tests doivent passer
 
 **✓ Validation Phase 7** : PHPStan + CS Fixer + Tests 100%
