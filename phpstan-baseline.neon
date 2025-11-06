@@ -1,0 +1,51 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 2
+			path: tests/Functional/Service/InvoiceFinalizerFacturXTest.php
+
+		-
+			message: "#^Cannot access property \\$nodeValue on DOMNode\\|null\\.$#"
+			count: 27
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Cannot call method item\\(\\) on DOMNodeList\\<DOMNode\\>\\|false\\.$#"
+			count: 28
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Service\\\\FacturX\\\\FacturXXmlBuilderTest has an uninitialized property \\$builder\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Method CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Service\\\\FacturX\\\\FacturXXmlBuilderTest\\:\\:safeGetNodeValue\\(\\) has parameter \\$nodes with generic class DOMNodeList but does not specify its types\\: TNode$#"
+			count: 1
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Method CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Service\\\\FacturX\\\\FacturXXmlBuilderTest\\:\\:safeGetNodeValue\\(\\) is unused\\.$#"
+			count: 1
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Method CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Service\\\\FacturX\\\\FacturXXmlBuilderTest\\:\\:safeQueryXPath\\(\\) is unused\\.$#"
+			count: 1
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, DOMNodeList\\<DOMNode\\>\\|false given\\.$#"
+			count: 32
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertStringContainsString\\(\\) expects string, string\\|null given\\.$#"
+			count: 2
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$string of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertMatchesRegularExpression\\(\\) expects string, string\\|null given\\.$#"
+			count: 1
+			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php

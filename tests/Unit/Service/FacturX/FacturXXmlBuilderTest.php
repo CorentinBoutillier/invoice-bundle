@@ -574,6 +574,31 @@ final class FacturXXmlBuilderTest extends TestCase
     // Helper Methods
     // ========================================
 
+    /**
+     * Safely query XPath and assert result is not false.
+     *
+     * @return \DOMNodeList<\DOMNode>
+     */
+    private function safeQueryXPath(\DOMXPath $xpath, string $query): \DOMNodeList
+    {
+        $result = $xpath->query($query);
+        $this->assertNotFalse($result, "XPath query failed: {$query}");
+
+        return $result;
+    }
+
+    /**
+     * Safely get node value from DOMNodeList.
+     */
+    private function safeGetNodeValue(\DOMNodeList $nodes, int $index = 0): string
+    {
+        $node = $nodes->item($index);
+        $this->assertNotNull($node, "Node at index {$index} is null");
+        $this->assertNotNull($node->nodeValue, "Node value at index {$index} is null");
+
+        return $node->nodeValue;
+    }
+
     private function createTestInvoice(?InvoiceType $type = null): Invoice
     {
         $invoice = new Invoice(

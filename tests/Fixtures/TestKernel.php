@@ -201,7 +201,38 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage',
         )->setPublic(true);
 
-        // Register InvoiceFinalizer service
+        // Register Factur-X services
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider')
+            ->addArgument(true)                // enabled
+            ->addArgument('BASIC')             // profile
+            ->addArgument('factur-x.xml')      // xmlFilename
+            ->setPublic(true);
+
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider',
+        )->setPublic(true);
+
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder')
+            ->setPublic(true);
+
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder',
+        )->setPublic(true);
+
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter')
+            ->setPublic(true);
+
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter',
+        )->setPublic(true);
+
+        // Register InvoiceFinalizer service (with Factur-X dependencies)
         $container->register('CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer')
             ->setClass('CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer')
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
@@ -210,6 +241,9 @@ class TestKernel extends Kernel
             ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface'))
             ->addArgument(new Reference('event_dispatcher'))
             ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface'))
             ->setPublic(true);
 
         // Alias interface to implementation

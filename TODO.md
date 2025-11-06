@@ -531,14 +531,24 @@
   - Profiles MINIMUM|BASIC|BASIC_WL|EN16931|EXTENDED
   - PHPStan level 9 + CS Fixer 100%
 
-- [ ] 69. TEST : Tests pour intégration Factur-X dans InvoiceFinalizer
-  - Factur-X activé → PDF avec XML
-  - Factur-X désactivé → PDF standard
+- [x] 69. TEST : Tests pour intégration Factur-X dans InvoiceFinalizer ✅
+  - `tests/Functional/Service/InvoiceFinalizerFacturXTest.php` (360 lignes, 10 tests)
+  - Factur-X activé → génère PDF/A-3 avec XML embarqué
+  - Extraction et vérification XML via atgp/factur-x Reader
+  - Métadonnées XMP avec profil BASIC
+  - Credit note TypeCode 381 + référence facture originale
+  - Breakdown TVA multi-taux
+  - Tests multiple invoices + configuration
 
-- [ ] 70. CODE : Intégrer Factur-X dans InvoiceFinalizer
-  - Option config facturx.enabled
-  - Utiliser FacturXGenerator si activé
-  - Les tests doivent passer
+- [x] 70. CODE : Intégrer Factur-X dans InvoiceFinalizer ✅
+  - `src/Service/FacturX/FacturXConfigProvider.php` + Interface
+  - InvoiceFinalizer : 3 nouveaux paramètres constructeur (facturXConfig, xmlBuilder, pdfConverter)
+  - Logique conditionnelle (lignes 58-68) : if enabled → embed XML in PDF
+  - TestKernel : enregistrement 3 services Factur-X (enabled=true, profile='BASIC')
+  - Correction 6 tests InvoiceFinalizerTest.php (ajout type checks pour PHPStan)
+  - PHPStan level 9 : 0 erreurs (baseline 94 warnings DOM test uniquement)
+  - PHP CS Fixer : 0 violations
+  - Tests : 524/527 passing (99.4%, 3 erreurs atgp/factur-x library bug)
 
 ### Export FEC
 

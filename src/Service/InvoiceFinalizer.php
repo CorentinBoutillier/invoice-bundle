@@ -10,6 +10,9 @@ use CorentinBoutillier\InvoiceBundle\Event\InvoiceFinalizedEvent;
 use CorentinBoutillier\InvoiceBundle\Event\InvoicePdfGeneratedEvent;
 use CorentinBoutillier\InvoiceBundle\Exception\InvoiceFinalizationException;
 use CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface;
+use CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface;
+use CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface;
+use CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface;
 use CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface;
 use CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface;
 use CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface;
@@ -25,6 +28,9 @@ final class InvoiceFinalizer implements InvoiceFinalizerInterface
         private readonly PdfStorageInterface $pdfStorage,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly CompanyProviderInterface $companyProvider,
+        private readonly FacturXConfigProviderInterface $facturXConfig,
+        private readonly FacturXXmlBuilderInterface $xmlBuilder,
+        private readonly PdfA3ConverterInterface $pdfConverter,
     ) {
     }
 
@@ -48,18 +54,31 @@ final class InvoiceFinalizer implements InvoiceFinalizerInterface
             // 5. Generate PDF
             $pdfContent = $this->pdfGenerator->generate($invoice, $companyData);
 
-            // 5. Store PDF
+            // 6. Apply Factur-X conversion if enabled
+            if ($this->facturXConfig->isEnabled()) {
+                // Generate Factur-X XML from invoice
+                $xmlContent = $this->xmlBuilder->build($invoice, $companyData);
+
+                // Convert PDF to PDF/A-3 with embedded XML
+                $pdfContent = $this->pdfConverter->embedXml(
+                    $pdfContent,
+                    $xmlContent,
+                    $this->facturXConfig->getProfile(),
+                );
+            }
+
+            // 7. Store PDF (standard or PDF/A-3 depending on config)
             $pdfPath = $this->pdfStorage->store($invoice, $pdfContent);
 
-            // 6. Record PDF metadata on invoice
+            // 8. Record PDF metadata on invoice
             $invoice->setPdfPath($pdfPath);
             $invoice->setPdfGeneratedAt(new \DateTimeImmutable());
 
-            // 7. Flush and commit transaction
+            // 9. Flush and commit transaction
             $this->entityManager->flush();
             $this->entityManager->commit();
 
-            // 8. Dispatch events (AFTER successful commit)
+            // 10. Dispatch events (AFTER successful commit)
             $this->eventDispatcher->dispatch(new InvoiceFinalizedEvent($invoice, $number));
             $this->eventDispatcher->dispatch(new InvoicePdfGeneratedEvent($invoice, $pdfContent));
         } catch (\Exception $e) {

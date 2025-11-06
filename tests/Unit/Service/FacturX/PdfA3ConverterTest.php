@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class PdfA3ConverterTest extends TestCase
 {
+    /** @phpstan-ignore property.uninitialized */
     private PdfA3ConverterInterface $converter;
 
     protected function setUp(): void
@@ -178,7 +179,10 @@ final class PdfA3ConverterTest extends TestCase
         $pdf->SetFont('Arial', 'B', 16);
         $pdf->Cell(40, 10, 'Test Invoice');
 
-        return $pdf->Output('S');
+        $output = $pdf->Output('S');
+        \assert(\is_string($output));
+
+        return $output;
     }
 
     /**

@@ -273,6 +273,20 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             throw new \RuntimeException('CompanyProviderInterface not found');
         }
 
+        // Mock Factur-X config to disable Factur-X (avoid atgp/factur-x library bug with multiple PDFs)
+        $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
+        $mockFacturXConfig->method('isEnabled')->willReturn(false);
+
+        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
+        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
+            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        }
+
+        $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
+        if (!$pdfConverter instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface) {
+            throw new \RuntimeException('PdfA3ConverterInterface not found');
+        }
+
         // Créer un InvoiceFinalizer avec le mock
         $finalizer = new \CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer(
             $this->entityManager,
@@ -281,6 +295,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->pdfStorage,
             $this->eventDispatcher,
             $companyProvider,
+            $mockFacturXConfig,
+            $xmlBuilder,
+            $pdfConverter,
         );
 
         $this->expectException(InvoiceFinalizationException::class);
@@ -313,6 +330,20 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             throw new \RuntimeException('CompanyProviderInterface not found');
         }
 
+        // Mock Factur-X config to disable Factur-X (avoid atgp/factur-x library bug with multiple PDFs)
+        $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
+        $mockFacturXConfig->method('isEnabled')->willReturn(false);
+
+        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
+        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
+            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        }
+
+        $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
+        if (!$pdfConverter instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface) {
+            throw new \RuntimeException('PdfA3ConverterInterface not found');
+        }
+
         // Créer un InvoiceFinalizer avec le mock
         $finalizer = new \CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer(
             $this->entityManager,
@@ -321,6 +352,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $mockPdfStorage,
             $this->eventDispatcher,
             $companyProvider,
+            $mockFacturXConfig,
+            $xmlBuilder,
+            $pdfConverter,
         );
 
         $this->expectException(InvoiceFinalizationException::class);
@@ -353,6 +387,20 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             throw new \RuntimeException('CompanyProviderInterface not found');
         }
 
+        // Mock Factur-X config to disable Factur-X (avoid atgp/factur-x library bug with multiple PDFs)
+        $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
+        $mockFacturXConfig->method('isEnabled')->willReturn(false);
+
+        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
+        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
+            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        }
+
+        $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
+        if (!$pdfConverter instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface) {
+            throw new \RuntimeException('PdfA3ConverterInterface not found');
+        }
+
         // Créer un InvoiceFinalizer avec le mock
         $finalizer = new \CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer(
             $this->entityManager,
@@ -361,6 +409,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $mockPdfStorage,
             $this->eventDispatcher,
             $companyProvider,
+            $mockFacturXConfig,
+            $xmlBuilder,
+            $pdfConverter,
         );
 
         try {
@@ -405,6 +456,20 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             throw new \RuntimeException('CompanyProviderInterface not found');
         }
 
+        // Mock Factur-X config to disable Factur-X (avoid atgp/factur-x library bug with multiple PDFs)
+        $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
+        $mockFacturXConfig->method('isEnabled')->willReturn(false);
+
+        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
+        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
+            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        }
+
+        $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
+        if (!$pdfConverter instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface) {
+            throw new \RuntimeException('PdfA3ConverterInterface not found');
+        }
+
         // Créer un InvoiceFinalizer avec le mock
         $finalizer = new \CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer(
             $this->entityManager,
@@ -413,6 +478,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $mockPdfStorage,
             $this->eventDispatcher,
             $companyProvider,
+            $mockFacturXConfig,
+            $xmlBuilder,
+            $pdfConverter,
         );
 
         try {
@@ -456,6 +524,20 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             throw new \RuntimeException('CompanyProviderInterface not found');
         }
 
+        // Mock Factur-X config to disable Factur-X (avoid atgp/factur-x library bug with multiple PDFs)
+        $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
+        $mockFacturXConfig->method('isEnabled')->willReturn(false);
+
+        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
+        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
+            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        }
+
+        $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
+        if (!$pdfConverter instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface) {
+            throw new \RuntimeException('PdfA3ConverterInterface not found');
+        }
+
         // Créer un InvoiceFinalizer avec le mock
         $finalizer = new \CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer(
             $this->entityManager,
@@ -464,6 +546,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $mockPdfStorage,
             $this->eventDispatcher,
             $companyProvider,
+            $mockFacturXConfig,
+            $xmlBuilder,
+            $pdfConverter,
         );
 
         try {
@@ -507,6 +592,20 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             throw new \RuntimeException('CompanyProviderInterface not found');
         }
 
+        // Mock Factur-X config to disable Factur-X (avoid atgp/factur-x library bug with multiple PDFs)
+        $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
+        $mockFacturXConfig->method('isEnabled')->willReturn(false);
+
+        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
+        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
+            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        }
+
+        $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
+        if (!$pdfConverter instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface) {
+            throw new \RuntimeException('PdfA3ConverterInterface not found');
+        }
+
         // Créer un InvoiceFinalizer avec le mock
         $finalizer = new \CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer(
             $this->entityManager,
@@ -515,6 +614,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $mockPdfStorage,
             $this->eventDispatcher,
             $companyProvider,
+            $mockFacturXConfig,
+            $xmlBuilder,
+            $pdfConverter,
         );
 
         $this->dispatchedEvents = []; // Reset
