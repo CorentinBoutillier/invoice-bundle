@@ -334,7 +334,10 @@ final class InvoiceHistorySubscriberTest extends TestCase
     {
         $invoice = $this->createInvoice();
         $pdfPath = '/var/invoices/2025/01/FA-2025-0001.pdf';
-        $event = new InvoicePdfGeneratedEvent($invoice, $pdfPath);
+        $invoice->setPdfPath($pdfPath);
+
+        $pdfContent = '%PDF-1.4 fake pdf content';
+        $event = new InvoicePdfGeneratedEvent($invoice, $pdfContent);
 
         $this->userProvider->method('getCurrentUser')->willReturn(null);
 

@@ -151,7 +151,7 @@ final class InvoiceHistorySubscriber implements EventSubscriberInterface
         $this->recordHistory(
             invoice: $event->invoice,
             action: InvoiceHistoryAction::FINALIZED,
-            metadata: ['pdf_path' => $event->pdfPath],
+            metadata: ['pdf_path' => $event->invoice->getPdfPath()],
         );
     }
 

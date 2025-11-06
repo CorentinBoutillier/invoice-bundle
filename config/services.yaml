@@ -48,3 +48,7 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\InvoiceManagerInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\InvoiceManager
         public: true
+
+    CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizerInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer
+        public: true

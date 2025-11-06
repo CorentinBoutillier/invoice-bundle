@@ -189,6 +189,35 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\InvoiceManager',
         )->setPublic(true);
 
+        // Register FilesystemPdfStorage service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage')
+            ->addArgument(sys_get_temp_dir().'/invoice-bundle/invoices')
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage',
+        )->setPublic(true);
+
+        // Register InvoiceFinalizer service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer')
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface'))
+            ->addArgument(new Reference('event_dispatcher'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface'))
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizerInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer',
+        )->setPublic(true);
+
         // Make EventDispatcherInterface public for tests
         $container->setAlias(
             'Symfony\Component\EventDispatcher\EventDispatcherInterface',

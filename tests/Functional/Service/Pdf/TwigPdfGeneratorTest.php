@@ -9,6 +9,7 @@ use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 use CorentinBoutillier\InvoiceBundle\Entity\InvoiceLine;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface;
 use CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface;
 use CorentinBoutillier\InvoiceBundle\Tests\Functional\Repository\RepositoryTestCase;
 use Smalot\PdfParser\Parser as PdfParser;
@@ -17,6 +18,9 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
 {
     /** @phpstan-ignore property.uninitialized */
     private PdfGeneratorInterface $pdfGenerator;
+
+    /** @phpstan-ignore property.uninitialized */
+    private CompanyProviderInterface $companyProvider;
 
     protected function setUp(): void
     {
@@ -29,6 +33,12 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
             throw new \RuntimeException('PdfGeneratorInterface not found');
         }
         $this->pdfGenerator = $pdfGenerator;
+
+        $companyProvider = $container->get(CompanyProviderInterface::class);
+        if (!$companyProvider instanceof CompanyProviderInterface) {
+            throw new \RuntimeException('CompanyProviderInterface not found');
+        }
+        $this->companyProvider = $companyProvider;
     }
 
     // ========== Basic Generation Tests ==========
@@ -37,7 +47,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
@@ -47,7 +57,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         // PDF files must start with %PDF-
         $this->assertStringStartsWith('%PDF-', $result);
@@ -57,7 +67,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         // A valid PDF should have at least 1KB
         $this->assertGreaterThan(1000, \strlen($result));
@@ -69,7 +79,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice(InvoiceType::INVOICE);
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $this->assertStringStartsWith('%PDF-', $result);
 
@@ -83,7 +93,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice(InvoiceType::CREDIT_NOTE);
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $this->assertStringStartsWith('%PDF-', $result);
 
@@ -99,7 +109,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $text = $this->extractTextFromPdf($result);
         $invoiceNumber = $invoice->getNumber();
@@ -111,7 +121,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $text = $this->extractTextFromPdf($result);
         $this->assertStringContainsString($invoice->getCompanyName(), $text);
@@ -121,7 +131,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $text = $this->extractTextFromPdf($result);
         $this->assertStringContainsString($invoice->getCustomerName(), $text);
@@ -131,7 +141,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $text = $this->extractTextFromPdf($result);
         // Check that we have "100,00" in the text (French number format)
@@ -142,7 +152,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoice();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $text = $this->extractTextFromPdf($result);
         $invoiceDate = $invoice->getDate()->format('d/m/Y');
@@ -155,7 +165,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoiceWithMultipleLines(5);
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $this->assertStringStartsWith('%PDF-', $result);
         $this->assertGreaterThan(1000, \strlen($result));
@@ -171,7 +181,7 @@ final class TwigPdfGeneratorTest extends RepositoryTestCase
     {
         $invoice = $this->createTestInvoiceWithGlobalDiscount();
 
-        $result = $this->pdfGenerator->generate($invoice);
+        $result = $this->pdfGenerator->generate($invoice, $this->companyProvider->getCompanyData());
 
         $this->assertStringStartsWith('%PDF-', $result);
         // Global discount should appear in the PDF

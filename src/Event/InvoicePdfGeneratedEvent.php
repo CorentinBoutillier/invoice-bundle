@@ -9,11 +9,11 @@ use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 /**
  * Dispatched when an invoice PDF is generated and stored.
  */
-readonly class InvoicePdfGeneratedEvent
+final class InvoicePdfGeneratedEvent
 {
     public function __construct(
-        public Invoice $invoice,
-        public string $pdfPath, // Storage path to the generated PDF
+        public readonly Invoice $invoice,
+        public readonly string $pdfContent, // Binary content of the generated PDF
     ) {
     }
 }

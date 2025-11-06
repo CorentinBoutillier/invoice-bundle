@@ -123,6 +123,14 @@ class Invoice
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Invoice $creditedInvoice = null;
 
+    // ========== PDF Generation ==========
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $pdfPath = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $pdfGeneratedAt = null;
+
     // ========== Timestamps ==========
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -589,6 +597,33 @@ class Invoice
     public function setCreditedInvoice(?self $creditedInvoice): void
     {
         $this->creditedInvoice = $creditedInvoice;
+    }
+
+    // ========== PDF Generation ==========
+
+    public function getPdfPath(): ?string
+    {
+        return $this->pdfPath;
+    }
+
+    public function setPdfPath(?string $pdfPath): void
+    {
+        $this->pdfPath = $pdfPath;
+    }
+
+    public function getPdfGeneratedAt(): ?\DateTimeImmutable
+    {
+        return $this->pdfGeneratedAt;
+    }
+
+    public function setPdfGeneratedAt(?\DateTimeImmutable $pdfGeneratedAt): void
+    {
+        $this->pdfGeneratedAt = $pdfGeneratedAt;
+    }
+
+    public function hasPdf(): bool
+    {
+        return null !== $this->pdfPath;
     }
 
     // ========== Timestamps ==========
