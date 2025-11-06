@@ -22,7 +22,8 @@
         "dompdf/dompdf": "^2.0",
         "twig/twig": "^3.8",
         "symfony/twig-bundle": "^6.4|^7.0",
-        "smalot/pdfparser": "^2.12"
+        "smalot/pdfparser": "^2.12",
+        "atgp/factur-x": "^2.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5",

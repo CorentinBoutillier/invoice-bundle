@@ -1,0 +1,22 @@
+# Invoice Bundle Configuration
+invoice:
+    # Factur-X Configuration (PDF/A-3 with embedded XML EN 16931)
+    # Format hybride: PDF lisible + XML machine-readable
+    # Obligatoire B2G (Chorus Pro) dès 2026, recommandé B2B/B2C
+    facturx:
+        # Enable Factur-X generation (true = opt-out, activé par défaut)
+        # Set to false to generate standard PDF only (backward compatibility)
+        enabled: true
+
+        # Factur-X profile (MINIMUM | BASIC | BASIC_WL | EN16931 | EXTENDED)
+        # BASIC = recommended (essential invoice data, 80% use cases)
+        # MINIMUM = sufficient for B2G Chorus Pro
+        # EN16931 = full European standard compliance (165+ fields)
+        profile: 'BASIC'
+
+        # XML filename embedded in PDF/A-3
+        xml_filename: 'factur-x.xml'
+
+        # Validate XML against XSD schema (slower but safer)
+        # Set to false in production for performance if XML generation is stable
+        validate_xml: false
