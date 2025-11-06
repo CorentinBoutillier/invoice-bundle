@@ -59,6 +59,21 @@ class TestKernel extends Kernel
             ],
         ]);
 
+        // Load InvoiceBundle configuration with test defaults
+        $container->loadFromExtension('invoice', [
+            'company' => [
+                'name' => 'Test Company SARL',
+                'address' => '123 Test Street, 75001 Paris, France',
+                'siret' => '12345678901234',
+                'vat_number' => 'FR12345678901',
+                'email' => 'contact@testcompany.fr',
+                'phone' => '+33 1 23 45 67 89',
+                'bank_name' => 'Test Bank',
+                'iban' => 'FR7612345678901234567890123',
+                'bic' => 'TESTFRPP',
+            ],
+        ]);
+
         $container->loadFromExtension('doctrine', [
             'dbal' => [
                 'driver' => 'pdo_sqlite',
@@ -252,10 +267,37 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer',
         )->setPublic(true);
 
+        // Register FecExporter service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporter')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporter')
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository'))
+            ->addArgument('411000') // $customerAccount
+            ->addArgument('707000') // $salesAccount
+            ->addArgument('445710') // $vatCollectedAccount
+            ->addArgument('VT')     // $journalCode
+            ->addArgument('Ventes') // $journalLabel
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporterInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporter',
+        )->setPublic(true);
+
         // Make EventDispatcherInterface public for tests
         $container->setAlias(
             'Symfony\Component\EventDispatcher\EventDispatcherInterface',
             'event_dispatcher',
+        )->setPublic(true);
+
+        // Register NullUserProvider for tests (InvoiceHistorySubscriber dependency)
+        $container->register('CorentinBoutillier\InvoiceBundle\Tests\Fixtures\NullUserProvider')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Tests\Fixtures\NullUserProvider')
+            ->setPublic(true);
+
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Provider\UserProviderInterface',
+            'CorentinBoutillier\InvoiceBundle\Tests\Fixtures\NullUserProvider',
         )->setPublic(true);
     }
 

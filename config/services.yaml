@@ -39,7 +39,7 @@ services:
 
     CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage:
         arguments:
-            $basePath: '%kernel.project_dir%/var/invoices'
+            $basePath: '%invoice.pdf.storage_path%'
 
     CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\FilesystemPdfStorage
@@ -52,3 +52,54 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizerInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\InvoiceFinalizer
         public: true
+
+    # Company Provider (configuration-based)
+    CorentinBoutillier\InvoiceBundle\Provider\ConfigCompanyProvider:
+        arguments:
+            $config: '%invoice.company%'
+        public: true
+
+    CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Provider\ConfigCompanyProvider
+        public: true
+
+    # Due Date Calculator
+    CorentinBoutillier\InvoiceBundle\Service\DueDateCalculatorInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\DueDateCalculator
+        public: false
+
+    # FEC Exporter with accounting configuration
+    CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporter:
+        arguments:
+            $customerAccount: '%invoice.accounting.customer_account%'
+            $salesAccount: '%invoice.accounting.sales_account%'
+            $vatCollectedAccount: '%invoice.accounting.vat_collected_account%'
+            $journalCode: '%invoice.accounting.journal_code%'
+            $journalLabel: '%invoice.accounting.journal_label%'
+
+    CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporterInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporter
+        public: true
+
+    # Factur-X Services
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider:
+        arguments:
+            $enabled: '%invoice.factur_x.enabled%'
+            $profile: '%invoice.factur_x.profile%'
+            $xmlFilename: '%invoice.factur_x.xml_filename%'
+
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider
+        public: false
+
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder: ~
+
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder
+        public: false
+
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter: ~
+
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter
+        public: false

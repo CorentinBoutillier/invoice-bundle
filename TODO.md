@@ -552,18 +552,23 @@
 
 ### Export FEC
 
-- [ ] 71. TEST : Tests pour FecExporter
+- [x] 71. TEST : Tests pour FecExporter
   - `tests/Functional/Service/Fec/FecExporterTest.php`
-  - Format CSV correct
-  - 18 colonnes conformes
-  - Séparateur |
-  - Calculs corrects (montants Money)
-  - Les tests définissent le contrat de l'interface
+  - Format CSV correct (✓)
+  - 18 colonnes conformes (✓)
+  - Séparateur | (✓)
+  - Calculs corrects (montants Money) (✓)
+  - 12 tests créés, tous RED (✓)
 
-- [ ] 72. CODE : Créer interface + implémentation FecExporter
-  - `src/Service/Fec/FecExporterInterface.php`
-  - `src/Service/Fec/FecExporter.php`
-  - Les tests doivent passer
+- [x] 72. CODE : Créer interface + implémentation FecExporter
+  - `src/Service/Fec/FecExporterInterface.php` (✓)
+  - `src/Service/Fec/FecExporter.php` (✓)
+  - Configuration accounting dans `Configuration.php` (✓)
+  - Multi-VAT rate support (✓)
+  - 12/12 tests GREEN (✓)
+  - PHPStan niveau 9: 0 erreurs (✓)
+  - PHP CS Fixer: 0 violations (✓)
+  - Tests: 539/539 passing (100%) (✓)
 
 - [ ] 73. TEST : Tests pour ExportFecCommand
   - `tests/Functional/Command/ExportFecCommandTest.php`
@@ -581,7 +586,7 @@
 
 ## 🔧 Phase 9 : Configuration & Intégration - TDD
 
-- [ ] 75. TEST : Tests d'intégration pour configuration bundle
+- [x] 75. TEST : Tests d'intégration pour configuration bundle
   - `tests/Functional/DependencyInjection/InvoiceBundleExtensionTest.php`
   - Chargement des paramètres YAML
   - Valeurs par défaut
@@ -589,7 +594,7 @@
   - Aliases corrects
   - Enregistrement MoneyType Doctrine
 
-- [ ] 76. CODE : Compléter Configuration.php + services.yaml
+- [x] 76. CODE : Compléter Configuration.php + services.yaml
   - `src/DependencyInjection/Configuration.php`
   - `config/services.yaml`
   - Tous les paramètres YAML
