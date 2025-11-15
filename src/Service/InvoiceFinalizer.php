@@ -6,6 +6,7 @@ namespace CorentinBoutillier\InvoiceBundle\Service;
 
 use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
+use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
 use CorentinBoutillier\InvoiceBundle\Event\InvoiceFinalizedEvent;
 use CorentinBoutillier\InvoiceBundle\Event\InvoicePdfGeneratedEvent;
 use CorentinBoutillier\InvoiceBundle\Exception\InvoiceFinalizationException;
@@ -54,8 +55,9 @@ final class InvoiceFinalizer implements InvoiceFinalizerInterface
             // 5. Generate PDF
             $pdfContent = $this->pdfGenerator->generate($invoice, $companyData);
 
-            // 6. Apply Factur-X conversion if enabled
-            if ($this->facturXConfig->isEnabled()) {
+            // 6. Apply Factur-X conversion if enabled (but NOT for credit notes - library bug)
+            // See: https://github.com/atgp/factur-x/issues - XPath namespace registration missing
+            if ($this->facturXConfig->isEnabled() && InvoiceType::INVOICE === $invoice->getType()) {
                 // Generate Factur-X XML from invoice
                 $xmlContent = $this->xmlBuilder->build($invoice, $companyData);
 
