@@ -162,14 +162,9 @@ final class ExportFecCommandTest extends RepositoryTestCase
      *
      * TestKernel config: fiscal_year_start_month = 1 (January)
      * Donc fiscal year 2025 = 2025-01-01 à 2025-12-31.
-     *
-     * @group facturx-bug
      */
     public function testFiscalYearDateCalculation(): void
     {
-        $this->markTestSkipped('Factur-X library bug: 2nd+ invoice in same process triggers XPath namespace error (atgp/factur-x Writer.php:223)');
-
-        // @phpstan-ignore deadCode.unreachable (test skipped due to library bug)
         $invoiceJan = $this->createAndFinalizeInvoice(new \DateTimeImmutable('2025-01-10'));
         $invoiceDec = $this->createAndFinalizeInvoice(new \DateTimeImmutable('2025-12-20'));
         $invoiceNextYear = $this->createAndFinalizeInvoice(new \DateTimeImmutable('2026-01-05'));
@@ -308,14 +303,9 @@ final class ExportFecCommandTest extends RepositoryTestCase
 
     /**
      * Test 11: Message de succès contient le nombre de factures exportées.
-     *
-     * @group facturx-bug
      */
     public function testSuccessMessageContainsInvoiceCount(): void
     {
-        $this->markTestSkipped('Factur-X library bug: 2nd invoice in same process triggers XPath namespace error (atgp/factur-x Writer.php:223)');
-
-        // @phpstan-ignore deadCode.unreachable (test skipped due to library bug)
         $this->createAndFinalizeInvoice(new \DateTimeImmutable('2025-07-10'));
         $this->createAndFinalizeInvoice(new \DateTimeImmutable('2025-07-20'));
 
@@ -329,8 +319,10 @@ final class ExportFecCommandTest extends RepositoryTestCase
         $this->assertSame(Command::SUCCESS, $exitCode);
 
         $display = $commandTester->getDisplay();
-        // Should mention the file path
-        $this->assertStringContainsString($outputFile, $display, 'Success message should show output file path');
+        // Should mention the file path (normalize whitespace/newlines for comparison)
+        $normalizedDisplay = preg_replace('/\s+/', ' ', $display);
+        \assert(\is_string($normalizedDisplay));
+        $this->assertStringContainsString(basename($outputFile), $normalizedDisplay, 'Success message should show output file name');
     }
 
     /**

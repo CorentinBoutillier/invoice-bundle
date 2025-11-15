@@ -25,15 +25,20 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     private const NS_RAM = 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100';
     private const NS_UDT = 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100';
 
+    /**
+     * DOMDocument is created fresh in build() to avoid accumulation when service is reused.
+     *
+     * @var \DOMDocument (initialized in build())
+     *
+     * @phpstan-ignore property.uninitialized (initialized in build())
+     */
     private \DOMDocument $dom;
-
-    public function __construct()
-    {
-        $this->dom = new \DOMDocument('1.0', 'UTF-8');
-    }
 
     public function build(Invoice $invoice, CompanyData $companyData): string
     {
+        // Create fresh DOMDocument for each build() call to avoid accumulation
+        // Bug fix: Singleton service was reusing same DOM, concatenating invoices
+        $this->dom = new \DOMDocument('1.0', 'UTF-8');
         $this->dom->formatOutput = true;
 
         // Root element with namespaces

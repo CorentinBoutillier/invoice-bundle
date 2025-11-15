@@ -217,8 +217,6 @@ final class InvoiceFinalizerFacturXTest extends RepositoryTestCase
      */
     public function testMultipleInvoicesRespectFacturXConfiguration(): void
     {
-        $this->markTestSkipped('Known bug in atgp/factur-x library (Writer.php:223) when processing multiple PDFs in same process. Single invoice tests pass. Bug tracked: https://github.com/atgp/factur-x/issues');
-
         $invoice1 = $this->createTestInvoice();
         $invoice2 = $this->createTestInvoice();
 
@@ -272,8 +270,6 @@ final class InvoiceFinalizerFacturXTest extends RepositoryTestCase
      */
     public function testCreditNoteGeneratesFacturXWithCorrectTypeCode(): void
     {
-        $this->markTestSkipped('Known bug in atgp/factur-x library (Writer.php:223) when processing multiple PDFs in same process. Single invoice tests pass. Bug tracked: https://github.com/atgp/factur-x/issues');
-
         $originalInvoice = $this->createTestInvoice();
         $this->entityManager->persist($originalInvoice);
         $this->entityManager->flush();
@@ -302,9 +298,9 @@ final class InvoiceFinalizerFacturXTest extends RepositoryTestCase
         $reader = new Reader();
         $extractedXml = $reader->extractXML($pdfContent, false);
 
-        // Verify type code is 381 (Credit Note)
-        $this->assertStringContainsString('<ram:TypeCode>381</ram:TypeCode>', $extractedXml);
-        $this->assertStringContainsString((string) $originalInvoice->getNumber(), $extractedXml);
+        // Verify type code is 381 (Credit Note) - flexible matching for namespace attributes
+        $this->assertStringContainsString('>381</ram:TypeCode>', $extractedXml, 'XML should contain TypeCode 381 for credit note');
+        $this->assertStringContainsString((string) $originalInvoice->getNumber(), $extractedXml, 'XML should reference original invoice');
     }
 
     /**

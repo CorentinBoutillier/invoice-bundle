@@ -1,11 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
-			count: 2
-			path: tests/Functional/Service/InvoiceFinalizerFacturXTest.php
-
-		-
 			message: "#^Cannot access property \\$nodeValue on DOMNode\\|null\\.$#"
 			count: 27
 			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php

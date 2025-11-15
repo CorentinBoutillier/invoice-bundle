@@ -31,7 +31,7 @@ final class FilesystemPdfStorage implements PdfStorageInterface
 
         // Create directory if it doesn't exist
         if (!is_dir($directory)) {
-            if (!mkdir($directory, 0755, true)) {
+            if (!@mkdir($directory, 0755, true) && !is_dir($directory)) {
                 throw new StorageException(\sprintf('Cannot create directory: %s', $directory));
             }
         }
@@ -41,7 +41,8 @@ final class FilesystemPdfStorage implements PdfStorageInterface
         $fullPath = \sprintf('%s/%s', $directory, $filename);
 
         // Write file with exclusive lock (atomic write)
-        $handle = fopen($fullPath, 'c');
+        // Suppress warning as we handle errors via exception
+        $handle = @fopen($fullPath, 'c');
         if (false === $handle) {
             throw new StorageException(\sprintf('Cannot write PDF to: %s', $fullPath));
         }
