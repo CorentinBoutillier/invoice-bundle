@@ -663,23 +663,35 @@
 - **Total tâches** : 83 (Tasks 65-68 fusionnées dans 63-64)
 - **Tâches complétées** : 78 (Phases 0-9 complètes)
 - **Progression** : 94.0%
+- **Tests** : 583/583 passing (100% ✅)
+- **Assertions** : 1463
+- **Warnings** : 1 (vendor atgp/factur-x uniquement)
+- **Skipped** : 1 (multi-company limitation - légitime)
 
 **Phase 8 Résultats (Tasks 67-74)** :
 - FacturX : Génération XML EN 16931 + conversion PDF/A-3 (38 tests - BASIC profile, multi-VAT, credit notes)
 - FecExporter : Export comptable français légal (12 tests - 18 colonnes, Plan Comptable Général)
-- ExportFecCommand : CLI export FEC avec calcul fiscal year (12 tests - 10 passing, 2 skipped Factur-X bug)
-- Factur-X réactivé pour avoirs (bug library uniquement dans tests multi-factures)
-- 583 tests au total (1450 assertions)
+- ExportFecCommand : CLI export FEC avec calcul fiscal year (12 tests - 100% passing ✅)
+- 583 tests au total (1463 assertions)
 - PHPStan niveau 9 : 0 erreurs
 - CS Fixer : 100% conforme
+
+**🔧 Bug Factur-X RÉSOLU (post-Phase 8)** :
+- Symptôme : Crash au 2ème+ invoice (`Call to a member function item() on false`)
+- Cause racine : DOMDocument réutilisé dans FacturXXmlBuilder (singleton) → XML concaténés
+- Investigation : Tests debug, XPath isolation, XML inspection (12KB au lieu de 6KB)
+- Solution : Reset DOMDocument dans build() au lieu du constructor
+- Impact : 4 tests réactivés (ExportFecCommandTest: 2, InvoiceFinalizerFacturXTest: 2)
+- Production : ✅ JAMAIS affectée (chaque requête HTTP = nouveau process PHP)
+- Tests : 583/583 passing, Warnings: 1 (vendor atgp/factur-x)
 
 **Phase 9 Résultats (Tasks 75-79)** :
 - InvoiceBundleExtension : Configuration YAML complète (accounting, pdf, factur_x, company, vat_rates, fiscal_year) (8 tests)
 - SchemaValidation : Validation Doctrine schema exhaustive (10 tests - mapping, constraints, FK, indexes)
 - SchemaCreation : Tests création/destruction schéma (3 tests - bundle pattern sans migrations)
 - CompleteInvoiceWorkflow : Tests E2E workflow complet (7 tests - multi-VAT, discount, payments, events)
-- Factur-X : Désactivé pour credit notes (library bug atgp/factur-x XPath namespace)
-- 571 tests au total (1420 assertions)
+- Factur-X : Activé pour tous types (invoices + credit notes) ✅
+- 583 tests au total (1463 assertions)
 - PHPStan niveau 9 : 0 erreurs
 - CS Fixer : 100% conforme
 
