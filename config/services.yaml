@@ -19,6 +19,14 @@ services:
     CorentinBoutillier\InvoiceBundle\Validator\:
         resource: '../src/Validator/*'
 
+    CorentinBoutillier\InvoiceBundle\Command\:
+        resource: '../src/Command/*'
+        tags: ['console.command']
+
+    # Make ExportFecCommand public for testing
+    CorentinBoutillier\InvoiceBundle\Command\ExportFecCommand:
+        public: true
+
     # Alias for interface to implementation
     CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator
