@@ -260,6 +260,80 @@ vendor/bin/php-cs-fixer fix --dry-run    # Vérifier sans corriger
 - **PHP 8.3+** : `declare(strict_types=1)` sur tous les fichiers
 - **Couverture** : > 90%
 
+## ⚠️ Obligations légales de l'application cliente
+
+Le bundle garantit la conformité à la réglementation française pour la **génération et la structure** des factures. Cependant, certaines obligations légales doivent être **implémentées par votre application** :
+
+### 1. Conservation des factures (10 ans)
+
+**Article L123-22 du Code de commerce** :
+> "Les documents comptables et les pièces justificatives sont conservés pendant dix ans."
+
+**Votre responsabilité** :
+- ❌ **Ne jamais supprimer** physiquement les factures de la base de données
+- ✅ Implémenter un **soft delete** si besoin de "supprimer" une facture
+- ✅ Conserver les **fichiers PDF** pendant 10 ans (filesystem, S3, archive)
+- ✅ Mettre en place une **politique de rétention** conforme
+
+**Exemple de soft delete** :
+```php
+// ❌ INTERDIT : Suppression physique
+$entityManager->remove($invoice);
+
+// ✅ CORRECT : Soft delete avec date
+$invoice->setDeletedAt(new \DateTimeImmutable());
+$entityManager->flush();
+```
+
+### 2. Contrôle d'accès et sécurité
+
+- ✅ Implémenter des **Voters Symfony** pour restreindre l'accès aux factures
+- ✅ Logger les consultations de factures (audit trail)
+- ✅ Protéger les fichiers PDF contre l'accès non autorisé
+
+**Exemple de Voter** :
+```php
+class InvoiceVoter extends Voter
+{
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    {
+        // Seul le propriétaire ou un admin peut voir la facture
+        return $subject->getCompanyId() === $user->getCompanyId()
+            || in_array('ROLE_ADMIN', $user->getRoles());
+    }
+}
+```
+
+### 3. Mentions légales spécifiques
+
+Certaines mentions légales peuvent varier selon votre activité :
+- Capital social (si SAS, SARL)
+- RCS (Registre du Commerce et des Sociétés)
+- Numéro de TVA intracommunautaire
+- Assurance professionnelle (pour certaines activités réglementées)
+
+Utilisez les champs optionnels de `CompanyData` ou étendez le template PDF.
+
+### 4. Archivage électronique probant
+
+Pour une valeur probante, les factures électroniques doivent être conservées au **format électronique d'origine** :
+- ✅ Conserver les PDF générés (pas de conversion)
+- ✅ Garantir l'intégrité (hash, signature électronique si nécessaire)
+- ✅ Assurer la lisibilité pendant toute la durée de conservation
+
+**Le bundle garantit** :
+- ✅ Immutabilité des factures finalisées (statut FINALIZED)
+- ✅ PDF généré une seule fois à la finalisation
+- ✅ Numérotation continue sans rupture
+- ✅ Audit trail complet (InvoiceHistory)
+
+---
+
+**Ressources légales** :
+- [Article L123-22 Code de commerce](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006219327) - Conservation 10 ans
+- [Article 289 CGI](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006179656/) - Obligations de facturation
+- [BOI-BIC-DECLA-30-10-20-30](https://bofip.impots.gouv.fr/bofip/2837-PGP.html) - Conservation documents comptables
+
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! Merci de :
