@@ -7,6 +7,16 @@ namespace CorentinBoutillier\InvoiceBundle\Service\FacturX;
 use CorentinBoutillier\InvoiceBundle\DTO\CompanyData;
 use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 
+/**
+ * Builds Factur-X XML from Invoice entity.
+ *
+ * **Profile support:**
+ * - BASIC: ✅ Fully implemented (recommended)
+ * - MINIMUM, BASIC_WL, EN16931, EXTENDED: ⚠️ Accepted but generates BASIC XML
+ *
+ * To extend support for other profiles, this builder would need to generate
+ * profile-specific XML structures based on the configured profile.
+ */
 interface FacturXXmlBuilderInterface
 {
     /**

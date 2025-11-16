@@ -35,7 +35,7 @@
 
 ### 📄 Génération PDF
 - **Templates Twig** : Personnalisables par héritage
-- **Factur-X (ZUGFeRD)** : PDF/A-3 avec XML EN 16931 embarqué pour la facturation électronique
+- **Factur-X (ZUGFeRD)** : PDF/A-3 avec XML EN 16931 embarqué pour la facturation électronique (profil BASIC)
 - **Stockage flexible** : Filesystem par défaut, extensible (S3, etc.)
 
 ### 📊 Export comptable
@@ -152,7 +152,7 @@ invoice:
 
     factur_x:
         enabled: true
-        profile: "BASIC"      # MINIMUM|BASIC|EN16931|EXTENDED
+        profile: "BASIC"      # Seul BASIC est pleinement implémenté (voir note ci-dessous)
 
     accounting:
         customer_account: "411000"
@@ -163,6 +163,24 @@ invoice:
     fiscal_year:
         start_month: 1        # 1 = Janvier, 11 = Novembre
 ```
+
+### Profils Factur-X supportés
+
+**Profil BASIC (recommandé et pleinement implémenté)** :
+- ✅ Génération XML conforme au profil BASIC (UN/CEFACT CII D16B)
+- ✅ Conversion PDF/A-3 avec métadonnées XMP
+- ✅ Embedding XML validé par les tests fonctionnels
+- ✅ Compatible avec la majorité des logiciels de comptabilité français
+
+**Autres profils (acceptés par le converter mais XML identique au BASIC)** :
+- ⚠️ `MINIMUM` : Accepté mais génère du XML BASIC (pas assez de données pour le profil MINIMUM)
+- ⚠️ `BASIC_WL` : Accepté mais génère du XML BASIC avec lignes (incompatible BASIC_WL)
+- ⚠️ `EN16931` : Accepté mais génère du XML BASIC (manque des champs obligatoires EN16931)
+- ⚠️ `EXTENDED` : Accepté mais génère du XML BASIC (manque des champs étendus)
+
+**Recommandation** : Utilisez le profil **BASIC** (valeur par défaut) qui couvre 80% des besoins de facturation française.
+
+**Extension future** : Pour supporter pleinement les autres profils, il faudrait étendre `FacturXXmlBuilder` pour générer du XML adapté à chaque profil. Contributions bienvenues !
 
 ### Multi-société (Provider personnalisé)
 
@@ -228,7 +246,7 @@ echo $discounted->format('fr_FR');        // "289,97 €"
 
 ## 🧪 Tests
 
-Le bundle dispose d'une suite de tests complète (583 tests, 1463 assertions, 94% de couverture).
+Le bundle dispose d'une suite de tests complète (597 tests, 1510 assertions, 94% de couverture).
 
 ```bash
 # Tests unitaires et fonctionnels

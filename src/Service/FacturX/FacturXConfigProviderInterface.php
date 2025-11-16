@@ -11,6 +11,9 @@ namespace CorentinBoutillier\InvoiceBundle\Service\FacturX;
  * - Enable/disable Factur-X generation (opt-out for 2026 B2G compliance)
  * - Profile selection (MINIMUM, BASIC, BASIC_WL, EN16931, EXTENDED)
  * - XML filename embedded in PDF/A-3
+ *
+ * **Note:** Only BASIC profile is fully implemented for XML generation.
+ * Other profiles are accepted by the PDF/A-3 converter but will embed BASIC XML.
  */
 interface FacturXConfigProviderInterface
 {
@@ -25,6 +28,9 @@ interface FacturXConfigProviderInterface
      * Get Factur-X profile.
      *
      * @return string Profile name (MINIMUM|BASIC|BASIC_WL|EN16931|EXTENDED)
+     *
+     * Note: Only BASIC profile generates conformant XML. Other profiles
+     * are accepted but will embed BASIC XML in the PDF/A-3.
      */
     public function getProfile(): string;
 
