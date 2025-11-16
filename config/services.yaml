@@ -39,7 +39,7 @@ services:
     CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator:
         arguments:
             $twig: '@twig'
-            $templatePath: '@Invoice/invoice/pdf.html.twig'
+            $templatePath: '@@InvoiceBundle/invoice/pdf.html.twig'
 
     CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\Pdf\TwigPdfGenerator
@@ -110,4 +110,13 @@ services:
 
     CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter
+        public: false
+
+    # User Provider (default implementation using Symfony Security)
+    CorentinBoutillier\InvoiceBundle\Provider\SecurityUserProvider:
+        arguments:
+            $security: '@?security.helper'  # Optional - null if security-bundle not installed
+
+    CorentinBoutillier\InvoiceBundle\Provider\UserProviderInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Provider\SecurityUserProvider
         public: false
