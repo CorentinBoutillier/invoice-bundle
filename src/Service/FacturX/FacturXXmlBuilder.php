@@ -100,6 +100,12 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $transaction = $this->createElement('rsm:SupplyChainTradeTransaction');
 
+        // IMPORTANT: Schema requires line items BEFORE header elements
+        // Line Items (must come first according to Factur-X BASIC schema)
+        foreach ($invoice->getLines() as $line) {
+            $transaction->appendChild($this->buildLineItem($line));
+        }
+
         // Trade Agreement (Seller + Buyer)
         $transaction->appendChild($this->buildHeaderTradeAgreement($invoice, $companyData));
 
@@ -108,11 +114,6 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
 
         // Trade Settlement (Currency, VAT, Totals, Payment)
         $transaction->appendChild($this->buildHeaderTradeSettlement($invoice, $companyData));
-
-        // Line Items
-        foreach ($invoice->getLines() as $line) {
-            $transaction->appendChild($this->buildLineItem($line));
-        }
 
         return $transaction;
     }
@@ -131,15 +132,15 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $seller = $this->createElement('ram:SellerTradeParty');
 
-        // Company name
-        $seller->appendChild($this->createElement('ram:Name', $companyData->name));
-
-        // SIRET (French company ID, scheme 0002)
+        // SIRET (French company ID, scheme 0002) - must come BEFORE Name
         if ($companyData->siret) {
             $siretId = $this->createElement('ram:ID', $companyData->siret);
             $siretId->setAttribute('schemeID', '0002');
             $seller->appendChild($siretId);
         }
+
+        // Company name
+        $seller->appendChild($this->createElement('ram:Name', $companyData->name));
 
         // Postal address
         $seller->appendChild($this->buildPostalAddress($companyData->address));
@@ -160,15 +161,15 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $buyer = $this->createElement('ram:BuyerTradeParty');
 
-        // Customer name
-        $buyer->appendChild($this->createElement('ram:Name', $invoice->getCustomerName()));
-
-        // Customer SIRET (if available)
+        // Customer SIRET (if available) - must come BEFORE Name
         if ($invoice->getCustomerSiret()) {
             $siretId = $this->createElement('ram:ID', $invoice->getCustomerSiret());
             $siretId->setAttribute('schemeID', '0002');
             $buyer->appendChild($siretId);
         }
+
+        // Customer name
+        $buyer->appendChild($this->createElement('ram:Name', $invoice->getCustomerName()));
 
         // Postal address
         $buyer->appendChild($this->buildPostalAddress($invoice->getCustomerAddress()));
@@ -191,6 +192,10 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
 
         // Put full address in LineOne (simplified for BASIC profile)
         $address->appendChild($this->createElement('ram:LineOne', $fullAddress));
+
+        // CountryID is mandatory in Factur-X BASIC profile
+        // Default to FR (France) - could be made configurable
+        $address->appendChild($this->createElement('ram:CountryID', 'FR'));
 
         return $address;
     }
@@ -215,31 +220,10 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $settlement = $this->createElement('ram:ApplicableHeaderTradeSettlement');
 
-        // Currency code
+        // 1. Currency code (must be first)
         $settlement->appendChild($this->createElement('ram:InvoiceCurrencyCode', 'EUR'));
 
-        // Credit note reference (if applicable)
-        if (InvoiceType::CREDIT_NOTE === $invoice->getType() && $invoice->getCreditedInvoice()) {
-            $refDoc = $this->createElement('ram:InvoiceReferencedDocument');
-            $refDoc->appendChild($this->createElement('ram:IssuerAssignedID', $invoice->getCreditedInvoice()->getNumber() ?? ''));
-            $settlement->appendChild($refDoc);
-        }
-
-        // VAT breakdown by rate
-        foreach ($this->calculateVatBreakdown($invoice) as $vatData) {
-            $settlement->appendChild($this->buildApplicableTradeTax($vatData));
-        }
-
-        // Payment terms (due date)
-        $paymentTerms = $this->createElement('ram:SpecifiedTradePaymentTerms');
-        $dueDateTime = $this->createElement('ram:DueDateDateTime');
-        $dueDateString = $this->createElement('udt:DateTimeString', $invoice->getDueDate()->format('Ymd'));
-        $dueDateString->setAttribute('format', '102');
-        $dueDateTime->appendChild($dueDateString);
-        $paymentTerms->appendChild($dueDateTime);
-        $settlement->appendChild($paymentTerms);
-
-        // Payment means (bank transfer with IBAN)
+        // 2. Payment means (must come BEFORE VAT breakdown)
         if ($companyData->iban) {
             $paymentMeans = $this->createElement('ram:SpecifiedTradeSettlementPaymentMeans');
             $paymentMeans->appendChild($this->createElement('ram:TypeCode', '58')); // 58 = SEPA Credit Transfer
@@ -251,8 +235,29 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
             $settlement->appendChild($paymentMeans);
         }
 
-        // Monetary summation (totals)
+        // 3. VAT breakdown by rate
+        foreach ($this->calculateVatBreakdown($invoice) as $vatData) {
+            $settlement->appendChild($this->buildApplicableTradeTax($vatData));
+        }
+
+        // 4. Payment terms (due date)
+        $paymentTerms = $this->createElement('ram:SpecifiedTradePaymentTerms');
+        $dueDateTime = $this->createElement('ram:DueDateDateTime');
+        $dueDateString = $this->createElement('udt:DateTimeString', $invoice->getDueDate()->format('Ymd'));
+        $dueDateString->setAttribute('format', '102');
+        $dueDateTime->appendChild($dueDateString);
+        $paymentTerms->appendChild($dueDateTime);
+        $settlement->appendChild($paymentTerms);
+
+        // 5. Monetary summation (totals - must be last)
         $settlement->appendChild($this->buildMonetarySummation($invoice));
+
+        // 6. Credit note reference (optional, after monetary summation for BASIC profile)
+        if (InvoiceType::CREDIT_NOTE === $invoice->getType() && $invoice->getCreditedInvoice()) {
+            $refDoc = $this->createElement('ram:InvoiceReferencedDocument');
+            $refDoc->appendChild($this->createElement('ram:IssuerAssignedID', $invoice->getCreditedInvoice()->getNumber() ?? ''));
+            $settlement->appendChild($refDoc);
+        }
 
         return $settlement;
     }
