@@ -15,6 +15,7 @@ final class FacturXConfigProvider implements FacturXConfigProviderInterface
         private readonly bool $enabled,
         private readonly string $profile,
         private readonly string $xmlFilename,
+        private readonly bool $validateXml = true,
     ) {
     }
 
@@ -31,5 +32,10 @@ final class FacturXConfigProvider implements FacturXConfigProviderInterface
     public function getXmlFilename(): string
     {
         return $this->xmlFilename;
+    }
+
+    public function shouldValidateXml(): bool
+    {
+        return $this->validateXml;
     }
 }

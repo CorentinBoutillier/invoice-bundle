@@ -5,17 +5,19 @@ declare(strict_types=1);
 namespace CorentinBoutillier\InvoiceBundle\Service;
 
 use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
+use CorentinBoutillier\InvoiceBundle\Enum\FacturXProfile;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Event\InvoiceFinalizedEvent;
 use CorentinBoutillier\InvoiceBundle\Event\InvoicePdfGeneratedEvent;
 use CorentinBoutillier\InvoiceBundle\Exception\InvoiceFinalizationException;
 use CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface;
 use CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface;
-use CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface;
+use CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory;
 use CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface;
 use CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGeneratorInterface;
 use CorentinBoutillier\InvoiceBundle\Service\Pdf\PdfGeneratorInterface;
 use CorentinBoutillier\InvoiceBundle\Service\Pdf\Storage\PdfStorageInterface;
+use CorentinBoutillier\InvoiceBundle\Service\Validation\XmlValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -29,8 +31,9 @@ final class InvoiceFinalizer implements InvoiceFinalizerInterface
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly CompanyProviderInterface $companyProvider,
         private readonly FacturXConfigProviderInterface $facturXConfig,
-        private readonly FacturXXmlBuilderInterface $xmlBuilder,
+        private readonly FacturXXmlBuilderFactory $xmlBuilderFactory,
         private readonly PdfA3ConverterInterface $pdfConverter,
+        private readonly ?XmlValidatorInterface $xmlValidator = null,
     ) {
     }
 
@@ -56,8 +59,20 @@ final class InvoiceFinalizer implements InvoiceFinalizerInterface
 
             // 6. Apply Factur-X conversion if enabled
             if ($this->facturXConfig->isEnabled()) {
+                // Determine the profile to use
+                $profile = FacturXProfile::tryFrom($this->facturXConfig->getProfile())
+                    ?? FacturXProfile::BASIC;
+
+                // Get the appropriate builder for the profile
+                $xmlBuilder = $this->xmlBuilderFactory->getBuilder($profile);
+
                 // Generate Factur-X XML from invoice
-                $xmlContent = $this->xmlBuilder->build($invoice, $companyData);
+                $xmlContent = $xmlBuilder->build($invoice, $companyData);
+
+                // Validate XML if enabled
+                if ($this->facturXConfig->shouldValidateXml() && null !== $this->xmlValidator) {
+                    $this->xmlValidator->validateOrFail($xmlContent, $profile);
+                }
 
                 // Convert PDF to PDF/A-3 with embedded XML
                 $pdfContent = $this->pdfConverter->embedXml(

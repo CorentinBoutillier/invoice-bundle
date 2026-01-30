@@ -95,22 +95,72 @@ services:
             $enabled: '%invoice.factur_x.enabled%'
             $profile: '%invoice.factur_x.profile%'
             $xmlFilename: '%invoice.factur_x.xml_filename%'
+            $validateXml: '%invoice.factur_x.validate_xml%'
 
     CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider
         public: false
 
-    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder: ~
+    # Factur-X XML Builders (tagged for factory)
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder:
+        tags: ['invoice.facturx_builder']
 
-    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface:
-        alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder
-        public: false
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXEN16931XmlBuilder:
+        tags: ['invoice.facturx_builder']
+
+    # Factur-X XML Builder Factory (collects tagged builders)
+    CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory:
+        arguments:
+            $builders: !tagged_iterator invoice.facturx_builder
 
     CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter: ~
 
     CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter
         public: false
+
+    # XML Validation Services
+    CorentinBoutillier\InvoiceBundle\Service\Validation\FacturXXmlValidator: ~
+
+    CorentinBoutillier\InvoiceBundle\Service\Validation\XmlValidatorInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\Validation\FacturXXmlValidator
+        public: false
+
+    # PDP (Plateforme de Dématérialisation Partenaire) Services
+    CorentinBoutillier\InvoiceBundle\Pdp\:
+        resource: '../src/Pdp/*'
+        exclude: '../src/Pdp/{Dto,Enum,Exception}/*'
+
+    CorentinBoutillier\InvoiceBundle\Pdp\PdpDispatcher:
+        arguments:
+            $connectors: !tagged_iterator invoice.pdp_connector
+            $defaultConnectorId: '%invoice.pdp.default_connector%'
+        public: true
+
+    CorentinBoutillier\InvoiceBundle\Pdp\PdpDispatcherInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Pdp\PdpDispatcher
+        public: false
+
+    CorentinBoutillier\InvoiceBundle\Pdp\Connector\NullConnector:
+        tags: ['invoice.pdp_connector']
+
+    # E-Reporting Services
+    CorentinBoutillier\InvoiceBundle\EReporting\:
+        resource: '../src/EReporting/*'
+        exclude: '../src/EReporting/{Dto,Enum}/*'
+
+    CorentinBoutillier\InvoiceBundle\EReporting\EReportingServiceInterface:
+        alias: CorentinBoutillier\InvoiceBundle\EReporting\EReportingService
+        public: false
+
+    # PDP Event Subscriber
+    CorentinBoutillier\InvoiceBundle\EventSubscriber\InvoicePdpSubscriber:
+        arguments:
+            $pdpEnabled: '%invoice.pdp.enabled%'
+            $autoSendOnFinalize: '%invoice.pdp.auto_send_on_finalize%'
+            $defaultConnectorId: '%invoice.pdp.default_connector%'
+            $logger: '@?logger'
+        tags: ['kernel.event_subscriber']
 
     # User Provider (default implementation using Symfony Security)
     CorentinBoutillier\InvoiceBundle\Provider\SecurityUserProvider:

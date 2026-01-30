@@ -40,4 +40,11 @@ interface FacturXConfigProviderInterface
      * @return string Filename (default: 'factur-x.xml')
      */
     public function getXmlFilename(): string;
+
+    /**
+     * Check if XML validation is enabled before embedding.
+     *
+     * @return bool True to validate XML against Factur-X schema, false to skip
+     */
+    public function shouldValidateXml(): bool;
 }
