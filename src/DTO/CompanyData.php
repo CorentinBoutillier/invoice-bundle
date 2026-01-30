@@ -23,6 +23,10 @@ readonly class CompanyData
         public ?string $bankName = null,
         public ?string $iban = null,
         public ?string $bic = null,
+        // EN16931 structured address fields
+        public ?string $city = null,
+        public ?string $postalCode = null,
+        public ?string $countryCode = null,
     ) {
     }
 }
