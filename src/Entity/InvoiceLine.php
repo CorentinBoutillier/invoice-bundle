@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace CorentinBoutillier\InvoiceBundle\Entity;
 
 use CorentinBoutillier\InvoiceBundle\DTO\Money;
+use CorentinBoutillier\InvoiceBundle\Enum\QuantityUnitCode;
+use CorentinBoutillier\InvoiceBundle\Enum\TaxCategoryCode;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -38,16 +40,34 @@ class InvoiceLine
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Invoice $invoice = null;
 
+    // ========== Factur-X EN16931 Fields ==========
+
+    #[ORM\Column(type: 'string', length: 10, enumType: QuantityUnitCode::class)]
+    private QuantityUnitCode $quantityUnit = QuantityUnitCode::HOUR;
+
+    #[ORM\Column(type: 'string', length: 5, enumType: TaxCategoryCode::class)]
+    private TaxCategoryCode $taxCategoryCode = TaxCategoryCode::STANDARD;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $itemIdentifier = null;  // BT-128: Seller item identifier (SKU/GTIN)
+
+    #[ORM\Column(type: 'string', length: 2, nullable: true)]
+    private ?string $countryOfOrigin = null;  // BT-134: ISO 3166-1 alpha-2
+
     public function __construct(
         string $description,
         float $quantity,
         Money $unitPrice,
         float $vatRate,
+        QuantityUnitCode $quantityUnit = QuantityUnitCode::HOUR,
+        TaxCategoryCode $taxCategoryCode = TaxCategoryCode::STANDARD,
     ) {
         $this->description = $description;
         $this->quantity = $quantity;
         $this->unitPriceAmount = $unitPrice->getAmount();
         $this->vatRate = $vatRate;
+        $this->quantityUnit = $quantityUnit;
+        $this->taxCategoryCode = $taxCategoryCode;
     }
 
     public function getId(): ?int
@@ -171,5 +191,47 @@ class InvoiceLine
     public function setInvoice(?Invoice $invoice): void
     {
         $this->invoice = $invoice;
+    }
+
+    // ========== Factur-X EN16931 Getters/Setters ==========
+
+    public function getQuantityUnit(): QuantityUnitCode
+    {
+        return $this->quantityUnit;
+    }
+
+    public function setQuantityUnit(QuantityUnitCode $quantityUnit): void
+    {
+        $this->quantityUnit = $quantityUnit;
+    }
+
+    public function getTaxCategoryCode(): TaxCategoryCode
+    {
+        return $this->taxCategoryCode;
+    }
+
+    public function setTaxCategoryCode(TaxCategoryCode $taxCategoryCode): void
+    {
+        $this->taxCategoryCode = $taxCategoryCode;
+    }
+
+    public function getItemIdentifier(): ?string
+    {
+        return $this->itemIdentifier;
+    }
+
+    public function setItemIdentifier(?string $itemIdentifier): void
+    {
+        $this->itemIdentifier = $itemIdentifier;
+    }
+
+    public function getCountryOfOrigin(): ?string
+    {
+        return $this->countryOfOrigin;
+    }
+
+    public function setCountryOfOrigin(?string $countryOfOrigin): void
+    {
+        $this->countryOfOrigin = $countryOfOrigin;
     }
 }

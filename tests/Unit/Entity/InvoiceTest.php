@@ -10,6 +10,7 @@ use CorentinBoutillier\InvoiceBundle\Entity\InvoiceLine;
 use CorentinBoutillier\InvoiceBundle\Entity\Payment;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Enum\OperationCategory;
 use CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod;
 use PHPUnit\Framework\TestCase;
 
@@ -1728,5 +1729,295 @@ final class InvoiceTest extends TestCase
         $daysOverdue = $invoice->getDaysOverdue();
         $this->assertGreaterThanOrEqual(3, $daysOverdue);
         $this->assertLessThanOrEqual(4, $daysOverdue); // Tolérance pour exécution de nuit
+    }
+
+    // ========== Factur-X EN16931 Fields ==========
+
+    public function testEN16931FieldsAreNullByDefault(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertNull($invoice->getBuyerReference());
+        $this->assertNull($invoice->getPurchaseOrderReference());
+        $this->assertNull($invoice->getAccountingReference());
+        $this->assertNull($invoice->getOperationCategory());
+        $this->assertNull($invoice->getVatOnDebits());
+    }
+
+    public function testBuyerReferenceCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setBuyerReference('REF-CLIENT-001');
+
+        $this->assertSame('REF-CLIENT-001', $invoice->getBuyerReference());
+    }
+
+    public function testPurchaseOrderReferenceCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setPurchaseOrderReference('PO-2024-001');
+
+        $this->assertSame('PO-2024-001', $invoice->getPurchaseOrderReference());
+    }
+
+    public function testAccountingReferenceCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setAccountingReference('ACC-2024-001');
+
+        $this->assertSame('ACC-2024-001', $invoice->getAccountingReference());
+    }
+
+    public function testOperationCategoryCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setOperationCategory(OperationCategory::SERVICES);
+
+        $this->assertSame(OperationCategory::SERVICES, $invoice->getOperationCategory());
+    }
+
+    public function testVatOnDebitsCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setVatOnDebits(true);
+
+        $this->assertTrue($invoice->getVatOnDebits());
+    }
+
+    public function testVatOnDebitsCanBeFalse(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setVatOnDebits(false);
+
+        $this->assertFalse($invoice->getVatOnDebits());
+    }
+
+    // ========== Structured Customer Address (BG-8) ==========
+
+    public function testStructuredCustomerAddressFieldsAreNullByDefault(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertNull($invoice->getCustomerCity());
+        $this->assertNull($invoice->getCustomerPostalCode());
+        $this->assertNull($invoice->getCustomerCountryCode());
+    }
+
+    public function testStructuredCustomerAddressCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'ACME Corp',
+            customerAddress: '123 Rue du Client',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setCustomerCity('Paris');
+        $invoice->setCustomerPostalCode('75001');
+        $invoice->setCustomerCountryCode('FR');
+
+        $this->assertSame('Paris', $invoice->getCustomerCity());
+        $this->assertSame('75001', $invoice->getCustomerPostalCode());
+        $this->assertSame('FR', $invoice->getCustomerCountryCode());
+    }
+
+    // ========== Delivery Address (BG-15) ==========
+
+    public function testDeliveryAddressFieldsAreNullByDefault(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertNull($invoice->getDeliveryAddressLine1());
+        $this->assertNull($invoice->getDeliveryCity());
+        $this->assertNull($invoice->getDeliveryPostalCode());
+        $this->assertNull($invoice->getDeliveryCountryCode());
+    }
+
+    public function testDeliveryAddressCanBeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setDeliveryAddressLine1('456 Rue de Livraison');
+        $invoice->setDeliveryCity('Lyon');
+        $invoice->setDeliveryPostalCode('69001');
+        $invoice->setDeliveryCountryCode('FR');
+
+        $this->assertSame('456 Rue de Livraison', $invoice->getDeliveryAddressLine1());
+        $this->assertSame('Lyon', $invoice->getDeliveryCity());
+        $this->assertSame('69001', $invoice->getDeliveryPostalCode());
+        $this->assertSame('FR', $invoice->getDeliveryCountryCode());
+    }
+
+    public function testHasDeliveryAddressReturnsFalseWhenNotSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertFalse($invoice->hasDeliveryAddress());
+    }
+
+    public function testHasDeliveryAddressReturnsTrueWhenAddressLine1Set(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setDeliveryAddressLine1('456 Rue de Livraison');
+
+        $this->assertTrue($invoice->hasDeliveryAddress());
+    }
+
+    public function testHasDeliveryAddressReturnsTrueWhenCitySet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setDeliveryCity('Lyon');
+
+        $this->assertTrue($invoice->hasDeliveryAddress());
+    }
+
+    public function testHasDeliveryAddressReturnsTrueWhenPostalCodeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setDeliveryPostalCode('69001');
+
+        $this->assertTrue($invoice->hasDeliveryAddress());
+    }
+
+    public function testHasDeliveryAddressReturnsFalseWhenOnlyCountryCodeSet(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $invoice->setDeliveryCountryCode('FR');
+
+        // Country code seul ne suffit pas pour une adresse de livraison
+        $this->assertFalse($invoice->hasDeliveryAddress());
     }
 }

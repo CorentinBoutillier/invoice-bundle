@@ -6,6 +6,8 @@ namespace CorentinBoutillier\InvoiceBundle\Tests\Unit\Entity;
 
 use CorentinBoutillier\InvoiceBundle\DTO\Money;
 use CorentinBoutillier\InvoiceBundle\Entity\InvoiceLine;
+use CorentinBoutillier\InvoiceBundle\Enum\QuantityUnitCode;
+use CorentinBoutillier\InvoiceBundle\Enum\TaxCategoryCode;
 use PHPUnit\Framework\TestCase;
 
 final class InvoiceLineTest extends TestCase
@@ -983,5 +985,206 @@ final class InvoiceLineTest extends TestCase
         // -100€ HT + (-20€) TVA = -120€ TTC
         $this->assertSame('-120.00', $totalTTC->toEuros());
         $this->assertTrue($totalTTC->isNegative());
+    }
+
+    // ========== Factur-X EN16931 Fields ==========
+
+    public function testDefaultQuantityUnitIsHour(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $this->assertSame(QuantityUnitCode::HOUR, $line->getQuantityUnit());
+    }
+
+    public function testConstructWithCustomQuantityUnit(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Produit vendu au kilo',
+            quantity: 2.5,
+            unitPrice: Money::fromEuros('15.00'),
+            vatRate: 20.0,
+            quantityUnit: QuantityUnitCode::KILOGRAM,
+        );
+
+        $this->assertSame(QuantityUnitCode::KILOGRAM, $line->getQuantityUnit());
+    }
+
+    public function testQuantityUnitCanBeChanged(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $line->setQuantityUnit(QuantityUnitCode::DAY);
+
+        $this->assertSame(QuantityUnitCode::DAY, $line->getQuantityUnit());
+    }
+
+    public function testDefaultTaxCategoryCodeIsStandard(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $this->assertSame(TaxCategoryCode::STANDARD, $line->getTaxCategoryCode());
+    }
+
+    public function testConstructWithCustomTaxCategoryCode(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Export hors UE',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 0.0,
+            taxCategoryCode: TaxCategoryCode::EXEMPT,
+        );
+
+        $this->assertSame(TaxCategoryCode::EXEMPT, $line->getTaxCategoryCode());
+    }
+
+    public function testTaxCategoryCodeCanBeChanged(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $line->setTaxCategoryCode(TaxCategoryCode::ZERO_RATE);
+
+        $this->assertSame(TaxCategoryCode::ZERO_RATE, $line->getTaxCategoryCode());
+    }
+
+    public function testConstructWithBothQuantityUnitAndTaxCategory(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Prestation journalière exonérée',
+            quantity: 5.0,
+            unitPrice: Money::fromEuros('500.00'),
+            vatRate: 0.0,
+            quantityUnit: QuantityUnitCode::DAY,
+            taxCategoryCode: TaxCategoryCode::EXEMPT,
+        );
+
+        $this->assertSame(QuantityUnitCode::DAY, $line->getQuantityUnit());
+        $this->assertSame(TaxCategoryCode::EXEMPT, $line->getTaxCategoryCode());
+    }
+
+    // ========== Item Identifier (BT-128) ==========
+
+    public function testItemIdentifierIsNullByDefault(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $this->assertNull($line->getItemIdentifier());
+    }
+
+    public function testItemIdentifierCanBeSet(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $line->setItemIdentifier('SKU-12345');
+
+        $this->assertSame('SKU-12345', $line->getItemIdentifier());
+    }
+
+    public function testItemIdentifierCanBeCleared(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $line->setItemIdentifier('SKU-12345');
+        $line->setItemIdentifier(null);
+
+        $this->assertNull($line->getItemIdentifier());
+    }
+
+    // ========== Country of Origin (BT-134) ==========
+
+    public function testCountryOfOriginIsNullByDefault(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $this->assertNull($line->getCountryOfOrigin());
+    }
+
+    public function testCountryOfOriginCanBeSet(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Produit fabriqué en France',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $line->setCountryOfOrigin('FR');
+
+        $this->assertSame('FR', $line->getCountryOfOrigin());
+    }
+
+    public function testCountryOfOriginCanBeCleared(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        $line->setCountryOfOrigin('DE');
+        $line->setCountryOfOrigin(null);
+
+        $this->assertNull($line->getCountryOfOrigin());
+    }
+
+    public function testCountryOfOriginWithVariousCountryCodes(): void
+    {
+        $line = new InvoiceLine(
+            description: 'Test',
+            quantity: 1.0,
+            unitPrice: Money::fromEuros('100.00'),
+            vatRate: 20.0,
+        );
+
+        // Test avec différents codes pays ISO 3166-1 alpha-2
+        $line->setCountryOfOrigin('DE');
+        $this->assertSame('DE', $line->getCountryOfOrigin());
+
+        $line->setCountryOfOrigin('CN');
+        $this->assertSame('CN', $line->getCountryOfOrigin());
+
+        $line->setCountryOfOrigin('US');
+        $this->assertSame('US', $line->getCountryOfOrigin());
     }
 }

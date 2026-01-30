@@ -7,6 +7,7 @@ namespace CorentinBoutillier\InvoiceBundle\Service\FacturX;
 use CorentinBoutillier\InvoiceBundle\DTO\CompanyData;
 use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 use CorentinBoutillier\InvoiceBundle\Entity\InvoiceLine;
+use CorentinBoutillier\InvoiceBundle\Enum\FacturXProfile;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
 
 /**
@@ -64,12 +65,23 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
         return $xml;
     }
 
+    public function getProfile(): FacturXProfile
+    {
+        return FacturXProfile::BASIC;
+    }
+
+    public function supports(FacturXProfile $profile): bool
+    {
+        return FacturXProfile::BASIC === $profile;
+    }
+
     private function buildDocumentContext(): \DOMElement
     {
         $context = $this->createElement('rsm:ExchangedDocumentContext');
 
         $guideline = $this->createElement('ram:GuidelineSpecifiedDocumentContextParameter');
-        $guideline->appendChild($this->createElement('ram:ID', 'urn:factur-x.eu:1p0:basic'));
+        // URN conforme au XSD Factur-X 1.07.3 pour le profil BASIC
+        $guideline->appendChild($this->createElement('ram:ID', 'urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic'));
         $context->appendChild($guideline);
 
         return $context;
@@ -122,8 +134,18 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $agreement = $this->createElement('ram:ApplicableHeaderTradeAgreement');
 
+        // BuyerReference (BT-10) - Code service destinataire pour Chorus Pro (obligatoire)
+        $buyerRef = $invoice->getBuyerReference() ?? 'SANS_OBJET';
+        $agreement->appendChild($this->createElement('ram:BuyerReference', $buyerRef));
+
         $agreement->appendChild($this->buildSellerTradeParty($companyData));
         $agreement->appendChild($this->buildBuyerTradeParty($invoice));
+
+        // BuyerOrderReferencedDocument (BT-13) - Engagement juridique / Bon de commande (obligatoire Chorus Pro)
+        $purchaseOrderRef = $invoice->getPurchaseOrderReference() ?? 'SANS_OBJET';
+        $orderRef = $this->createElement('ram:BuyerOrderReferencedDocument');
+        $orderRef->appendChild($this->createElement('ram:IssuerAssignedID', $purchaseOrderRef));
+        $agreement->appendChild($orderRef);
 
         return $agreement;
     }
@@ -132,15 +154,17 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $seller = $this->createElement('ram:SellerTradeParty');
 
-        // SIRET (French company ID, scheme 0002) - must come BEFORE Name
-        if ($companyData->siret) {
-            $siretId = $this->createElement('ram:ID', $companyData->siret);
-            $siretId->setAttribute('schemeID', '0002');
-            $seller->appendChild($siretId);
-        }
-
         // Company name
         $seller->appendChild($this->createElement('ram:Name', $companyData->name));
+
+        // SpecifiedLegalOrganization with SIRET (required by Chorus Pro)
+        if ($companyData->siret) {
+            $legalOrg = $this->createElement('ram:SpecifiedLegalOrganization');
+            $siretId = $this->createElement('ram:ID', $companyData->siret);
+            $siretId->setAttribute('schemeID', '0002');
+            $legalOrg->appendChild($siretId);
+            $seller->appendChild($legalOrg);
+        }
 
         // Postal address
         $seller->appendChild($this->buildPostalAddress($companyData->address));
@@ -161,15 +185,17 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     {
         $buyer = $this->createElement('ram:BuyerTradeParty');
 
-        // Customer SIRET (if available) - must come BEFORE Name
-        if ($invoice->getCustomerSiret()) {
-            $siretId = $this->createElement('ram:ID', $invoice->getCustomerSiret());
-            $siretId->setAttribute('schemeID', '0002');
-            $buyer->appendChild($siretId);
-        }
-
         // Customer name
         $buyer->appendChild($this->createElement('ram:Name', $invoice->getCustomerName()));
+
+        // SpecifiedLegalOrganization with SIRET (required by Chorus Pro)
+        if ($invoice->getCustomerSiret()) {
+            $legalOrg = $this->createElement('ram:SpecifiedLegalOrganization');
+            $siretId = $this->createElement('ram:ID', $invoice->getCustomerSiret());
+            $siretId->setAttribute('schemeID', '0002');
+            $legalOrg->appendChild($siretId);
+            $buyer->appendChild($legalOrg);
+        }
 
         // Postal address
         $buyer->appendChild($this->buildPostalAddress($invoice->getCustomerAddress()));
@@ -263,7 +289,7 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
     }
 
     /**
-     * @param array{rate: string, basis: string, amount: string} $vatData
+     * @param array{rate: string, basis: string, amount: string, categoryCode: string} $vatData
      */
     private function buildApplicableTradeTax(array $vatData): \DOMElement
     {
@@ -272,16 +298,16 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
         $tax->appendChild($this->createElement('ram:CalculatedAmount', $vatData['amount']));
         $tax->appendChild($this->createElement('ram:TypeCode', 'VAT'));
         $tax->appendChild($this->createElement('ram:BasisAmount', $vatData['basis']));
-        $tax->appendChild($this->createElement('ram:CategoryCode', 'S')); // S = Standard rate
+        $tax->appendChild($this->createElement('ram:CategoryCode', $vatData['categoryCode']));
         $tax->appendChild($this->createElement('ram:RateApplicablePercent', $vatData['rate']));
 
         return $tax;
     }
 
     /**
-     * Calculate VAT breakdown grouped by rate.
+     * Calculate VAT breakdown grouped by rate and category.
      *
-     * @return array<int, array{rate: string, basis: string, amount: string}>
+     * @return array<int, array{rate: string, basis: string, amount: string, categoryCode: string}>
      */
     private function calculateVatBreakdown(Invoice $invoice): array
     {
@@ -289,27 +315,30 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
 
         foreach ($invoice->getLines() as $line) {
             $rate = number_format($line->getVatRate(), 2, '.', '');
+            $categoryCode = $line->getTaxCategoryCode()->value;
+            $key = $rate.'_'.$categoryCode;
 
-            if (!isset($breakdown[$rate])) {
-                $breakdown[$rate] = [
+            if (!isset($breakdown[$key])) {
+                $breakdown[$key] = [
                     'rate' => $rate,
                     'basis' => '0.00',
                     'amount' => '0.00',
+                    'categoryCode' => $categoryCode,
                 ];
             }
 
             $lineBasis = $line->getTotalBeforeVat();
             $lineVat = $line->getVatAmount();
 
-            $breakdown[$rate]['basis'] = number_format(
-                (float) $breakdown[$rate]['basis'] + ($lineBasis->getAmount() / 100.0),
+            $breakdown[$key]['basis'] = number_format(
+                (float) $breakdown[$key]['basis'] + ($lineBasis->getAmount() / 100.0),
                 2,
                 '.',
                 '',
             );
 
-            $breakdown[$rate]['amount'] = number_format(
-                (float) $breakdown[$rate]['amount'] + ($lineVat->getAmount() / 100.0),
+            $breakdown[$key]['amount'] = number_format(
+                (float) $breakdown[$key]['amount'] + ($lineVat->getAmount() / 100.0),
                 2,
                 '.',
                 '',
@@ -321,15 +350,15 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
             $discountAmount = $invoice->getGlobalDiscountAmount()->getAmount() / 100.0;
             $totalBasis = array_sum(array_map(fn ($v) => (float) $v['basis'], $breakdown));
 
-            foreach ($breakdown as $rate => $vatData) {
+            foreach ($breakdown as $key => $vatData) {
                 $proportion = $totalBasis > 0 ? ((float) $vatData['basis']) / $totalBasis : 0;
                 $rateDiscount = $discountAmount * $proportion;
 
                 $newBasis = ((float) $vatData['basis']) - $rateDiscount;
                 $newAmount = $newBasis * ((float) $vatData['rate']) / 100;
 
-                $breakdown[$rate]['basis'] = number_format($newBasis, 2, '.', '');
-                $breakdown[$rate]['amount'] = number_format($newAmount, 2, '.', '');
+                $breakdown[$key]['basis'] = number_format($newBasis, 2, '.', '');
+                $breakdown[$key]['amount'] = number_format($newAmount, 2, '.', '');
             }
         }
 
@@ -406,7 +435,7 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
         // Line Delivery (quantity)
         $delivery = $this->createElement('ram:SpecifiedLineTradeDelivery');
         $quantity = $this->createElement('ram:BilledQuantity', number_format($line->getQuantity(), 4, '.', ''));
-        $quantity->setAttribute('unitCode', 'HUR'); // HUR = hours (default, could be configurable)
+        $quantity->setAttribute('unitCode', $line->getQuantityUnit()->value);
         $delivery->appendChild($quantity);
         $item->appendChild($delivery);
 
@@ -416,7 +445,7 @@ final class FacturXXmlBuilder implements FacturXXmlBuilderInterface
         // VAT
         $tax = $this->createElement('ram:ApplicableTradeTax');
         $tax->appendChild($this->createElement('ram:TypeCode', 'VAT'));
-        $tax->appendChild($this->createElement('ram:CategoryCode', 'S'));
+        $tax->appendChild($this->createElement('ram:CategoryCode', $line->getTaxCategoryCode()->value));
         $tax->appendChild($this->createElement('ram:RateApplicablePercent', number_format($line->getVatRate(), 2, '.', '')));
         $settlement->appendChild($tax);
 

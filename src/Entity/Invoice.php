@@ -7,6 +7,7 @@ namespace CorentinBoutillier\InvoiceBundle\Entity;
 use CorentinBoutillier\InvoiceBundle\DTO\Money;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Enum\OperationCategory;
 use CorentinBoutillier\InvoiceBundle\Repository\InvoiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -73,6 +74,50 @@ class Invoice
 
     #[ORM\Column(type: 'string', length: 50, nullable: true)]
     private ?string $customerVatNumber = null;
+
+    // ========== Structured Customer Address (BG-8) ==========
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $customerCity = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $customerPostalCode = null;
+
+    #[ORM\Column(type: 'string', length: 2, nullable: true)]
+    private ?string $customerCountryCode = null;
+
+    // ========== EN16931 - References ==========
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $buyerReference = null;  // BT-10: Buyer reference
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $purchaseOrderReference = null;  // BT-13: Purchase order reference
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $accountingReference = null;  // BT-19: Accounting cost code
+
+    // ========== Operation Category (French 2026) ==========
+
+    #[ORM\Column(type: 'string', length: 10, nullable: true, enumType: OperationCategory::class)]
+    private ?OperationCategory $operationCategory = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $vatOnDebits = null;  // TVA sur les débits
+
+    // ========== Delivery Address (BG-15) ==========
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $deliveryAddressLine1 = null;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $deliveryCity = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $deliveryPostalCode = null;
+
+    #[ORM\Column(type: 'string', length: 2, nullable: true)]
+    private ?string $deliveryCountryCode = null;
 
     // ========== Company Snapshot (NO Relations) ==========
 
@@ -330,6 +375,144 @@ class Invoice
     public function setCustomerVatNumber(?string $customerVatNumber): void
     {
         $this->customerVatNumber = $customerVatNumber;
+    }
+
+    // ========== Structured Customer Address (BG-8) Getters/Setters ==========
+
+    public function getCustomerCity(): ?string
+    {
+        return $this->customerCity;
+    }
+
+    public function setCustomerCity(?string $customerCity): void
+    {
+        $this->customerCity = $customerCity;
+    }
+
+    public function getCustomerPostalCode(): ?string
+    {
+        return $this->customerPostalCode;
+    }
+
+    public function setCustomerPostalCode(?string $customerPostalCode): void
+    {
+        $this->customerPostalCode = $customerPostalCode;
+    }
+
+    public function getCustomerCountryCode(): ?string
+    {
+        return $this->customerCountryCode;
+    }
+
+    public function setCustomerCountryCode(?string $customerCountryCode): void
+    {
+        $this->customerCountryCode = $customerCountryCode;
+    }
+
+    // ========== EN16931 References Getters/Setters ==========
+
+    public function getBuyerReference(): ?string
+    {
+        return $this->buyerReference;
+    }
+
+    public function setBuyerReference(?string $buyerReference): void
+    {
+        $this->buyerReference = $buyerReference;
+    }
+
+    public function getPurchaseOrderReference(): ?string
+    {
+        return $this->purchaseOrderReference;
+    }
+
+    public function setPurchaseOrderReference(?string $purchaseOrderReference): void
+    {
+        $this->purchaseOrderReference = $purchaseOrderReference;
+    }
+
+    public function getAccountingReference(): ?string
+    {
+        return $this->accountingReference;
+    }
+
+    public function setAccountingReference(?string $accountingReference): void
+    {
+        $this->accountingReference = $accountingReference;
+    }
+
+    // ========== Operation Category Getters/Setters ==========
+
+    public function getOperationCategory(): ?OperationCategory
+    {
+        return $this->operationCategory;
+    }
+
+    public function setOperationCategory(?OperationCategory $operationCategory): void
+    {
+        $this->operationCategory = $operationCategory;
+    }
+
+    public function getVatOnDebits(): ?bool
+    {
+        return $this->vatOnDebits;
+    }
+
+    public function setVatOnDebits(?bool $vatOnDebits): void
+    {
+        $this->vatOnDebits = $vatOnDebits;
+    }
+
+    // ========== Delivery Address (BG-15) Getters/Setters ==========
+
+    public function getDeliveryAddressLine1(): ?string
+    {
+        return $this->deliveryAddressLine1;
+    }
+
+    public function setDeliveryAddressLine1(?string $deliveryAddressLine1): void
+    {
+        $this->deliveryAddressLine1 = $deliveryAddressLine1;
+    }
+
+    public function getDeliveryCity(): ?string
+    {
+        return $this->deliveryCity;
+    }
+
+    public function setDeliveryCity(?string $deliveryCity): void
+    {
+        $this->deliveryCity = $deliveryCity;
+    }
+
+    public function getDeliveryPostalCode(): ?string
+    {
+        return $this->deliveryPostalCode;
+    }
+
+    public function setDeliveryPostalCode(?string $deliveryPostalCode): void
+    {
+        $this->deliveryPostalCode = $deliveryPostalCode;
+    }
+
+    public function getDeliveryCountryCode(): ?string
+    {
+        return $this->deliveryCountryCode;
+    }
+
+    public function setDeliveryCountryCode(?string $deliveryCountryCode): void
+    {
+        $this->deliveryCountryCode = $deliveryCountryCode;
+    }
+
+    /**
+     * Check if a delivery address is defined.
+     */
+    public function hasDeliveryAddress(): bool
+    {
+        return null !== $this->deliveryAddressLine1
+            || null !== $this->deliveryCity
+            || null !== $this->deliveryPostalCode;
     }
 
     // ========== Company Snapshot Getters/Setters ==========

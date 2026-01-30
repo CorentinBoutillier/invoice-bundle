@@ -6,29 +6,32 @@ namespace CorentinBoutillier\InvoiceBundle\Service\FacturX;
 
 use CorentinBoutillier\InvoiceBundle\DTO\CompanyData;
 use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
+use CorentinBoutillier\InvoiceBundle\Enum\FacturXProfile;
 
 /**
  * Builds Factur-X XML from Invoice entity.
  *
- * **Profile support:**
- * - BASIC: ✅ Fully implemented (recommended)
- * - MINIMUM, BASIC_WL, EN16931, EXTENDED: ⚠️ Accepted but generates BASIC XML
- *
- * To extend support for other profiles, this builder would need to generate
- * profile-specific XML structures based on the configured profile.
+ * Implementations generate profile-specific XML according to UN/CEFACT CII format.
  */
 interface FacturXXmlBuilderInterface
 {
     /**
      * Build Factur-X XML (UN/CEFACT CII format) from Invoice entity.
      *
-     * Generates machine-readable XML according to EN 16931 standard
-     * with BASIC profile (essential invoice data).
-     *
-     * @param Invoice $invoice Invoice entity with finalized data
+     * @param Invoice     $invoice     Invoice entity with finalized data
      * @param CompanyData $companyData Company information from provider
      *
      * @return string XML content as string (UTF-8 encoded)
      */
     public function build(Invoice $invoice, CompanyData $companyData): string;
+
+    /**
+     * Get the Factur-X profile this builder generates.
+     */
+    public function getProfile(): FacturXProfile;
+
+    /**
+     * Check if this builder supports the given profile.
+     */
+    public function supports(FacturXProfile $profile): bool;
 }

@@ -8,8 +8,11 @@ use CorentinBoutillier\InvoiceBundle\DTO\CompanyData;
 use CorentinBoutillier\InvoiceBundle\DTO\Money;
 use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 use CorentinBoutillier\InvoiceBundle\Entity\InvoiceLine;
+use CorentinBoutillier\InvoiceBundle\Enum\FacturXProfile;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Enum\QuantityUnitCode;
+use CorentinBoutillier\InvoiceBundle\Enum\TaxCategoryCode;
 use CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -568,6 +571,121 @@ final class FacturXXmlBuilderTest extends TestCase
         $refInvoiceNodes = $xpath->query('//ram:ApplicableHeaderTradeSettlement/ram:InvoiceReferencedDocument/ram:IssuerAssignedID');
         $this->assertCount(1, $refInvoiceNodes);
         $this->assertSame('FA-2025-0010', $refInvoiceNodes->item(0)->nodeValue);
+    }
+
+    // ========================================
+    // Profile Tests (3 tests)
+    // ========================================
+
+    public function testGetProfileReturnsBasic(): void
+    {
+        $this->assertSame(FacturXProfile::BASIC, $this->builder->getProfile());
+    }
+
+    public function testSupportsReturnsTrueForBasicProfile(): void
+    {
+        $this->assertTrue($this->builder->supports(FacturXProfile::BASIC));
+    }
+
+    public function testSupportsReturnsFalseForOtherProfiles(): void
+    {
+        $this->assertFalse($this->builder->supports(FacturXProfile::MINIMUM));
+        $this->assertFalse($this->builder->supports(FacturXProfile::BASIC_WL));
+        $this->assertFalse($this->builder->supports(FacturXProfile::EN16931));
+        $this->assertFalse($this->builder->supports(FacturXProfile::EXTENDED));
+    }
+
+    // ========================================
+    // Dynamic Enum Tests (3 tests)
+    // ========================================
+
+    public function testMapsLineQuantityUnitFromEnum(): void
+    {
+        $invoice = $this->createTestInvoice();
+        // Change quantity unit to DAYS
+        $lines = $invoice->getLines();
+        $line = $lines[0];
+        $line->setQuantityUnit(QuantityUnitCode::DAY);
+        $companyData = $this->createTestCompanyData();
+
+        $xml = $this->builder->build($invoice, $companyData);
+
+        $doc = new \DOMDocument();
+        $doc->loadXML($xml);
+        $xpath = new \DOMXPath($doc);
+        $xpath->registerNamespace('ram', 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
+
+        $qtyNodes = $xpath->query('//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeDelivery/ram:BilledQuantity/@unitCode');
+        $this->assertCount(1, $qtyNodes);
+        $this->assertSame('DAY', $qtyNodes->item(0)->nodeValue);
+    }
+
+    public function testMapsLineTaxCategoryCodeFromEnum(): void
+    {
+        $invoice = $this->createTestInvoice();
+        // Change tax category to Zero rate
+        $lines = $invoice->getLines();
+        $line = $lines[0];
+        $line->setTaxCategoryCode(TaxCategoryCode::ZERO_RATE);
+        $companyData = $this->createTestCompanyData();
+
+        $xml = $this->builder->build($invoice, $companyData);
+
+        $doc = new \DOMDocument();
+        $doc->loadXML($xml);
+        $xpath = new \DOMXPath($doc);
+        $xpath->registerNamespace('ram', 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
+
+        // Check line-level category code
+        $lineVatNodes = $xpath->query('//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode');
+        $this->assertCount(1, $lineVatNodes);
+        $this->assertSame('Z', $lineVatNodes->item(0)->nodeValue);
+
+        // Check header-level category code in VAT breakdown
+        $headerVatNodes = $xpath->query('//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode');
+        $this->assertCount(1, $headerVatNodes);
+        $this->assertSame('Z', $headerVatNodes->item(0)->nodeValue);
+    }
+
+    public function testMapsMultipleTaxCategoriesInBreakdown(): void
+    {
+        $invoice = $this->createTestInvoice();
+        // First line is standard rate (S)
+        $lines = $invoice->getLines();
+        $line1 = $lines[0];
+        $line1->setTaxCategoryCode(TaxCategoryCode::STANDARD);
+
+        // Add second line with exempt tax
+        $line2 = new InvoiceLine(
+            description: 'Service exonéré',
+            quantity: 5,
+            unitPrice: Money::fromEuros('200.00'),
+            vatRate: 0.0,
+        );
+        $line2->setTaxCategoryCode(TaxCategoryCode::EXEMPT);
+        $invoice->addLine($line2);
+
+        $companyData = $this->createTestCompanyData();
+
+        $xml = $this->builder->build($invoice, $companyData);
+
+        $doc = new \DOMDocument();
+        $doc->loadXML($xml);
+        $xpath = new \DOMXPath($doc);
+        $xpath->registerNamespace('ram', 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
+
+        // Should have 2 VAT breakdown sections (S and E)
+        $headerVatNodes = $xpath->query('//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode');
+        $this->assertCount(2, $headerVatNodes);
+        $this->assertNotFalse($headerVatNodes);
+
+        $categories = [];
+        /** @var \DOMNode $node */
+        foreach ($headerVatNodes as $node) {
+            $categories[] = $node->nodeValue;
+        }
+        sort($categories);
+        $this->assertSame(['E', 'S'], $categories);
     }
 
     // ========================================
