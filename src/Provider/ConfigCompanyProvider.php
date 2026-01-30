@@ -56,6 +56,15 @@ final class ConfigCompanyProvider implements CompanyProviderInterface
             bankName: isset($this->config['bankName']) && \is_string($this->config['bankName']) ? $this->config['bankName'] : null,
             iban: isset($this->config['iban']) && \is_string($this->config['iban']) ? $this->config['iban'] : null,
             bic: isset($this->config['bic']) && \is_string($this->config['bic']) ? $this->config['bic'] : null,
+            // EN16931 structured address fields (support both snake_case and camelCase)
+            city: $this->getStringConfig('city'),
+            postalCode: $this->getStringConfig('postalCode') ?? $this->getStringConfig('postal_code'),
+            countryCode: $this->getStringConfig('countryCode') ?? $this->getStringConfig('country_code') ?? 'FR',
         );
+    }
+
+    private function getStringConfig(string $key): ?string
+    {
+        return isset($this->config[$key]) && \is_string($this->config[$key]) ? $this->config[$key] : null;
     }
 }

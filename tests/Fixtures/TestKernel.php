@@ -229,14 +229,30 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProvider',
         )->setPublic(true);
 
+        // Register Factur-X XML Builders
         $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder')
             ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder')
+            ->addTag('invoice.facturx_builder')
+            ->setPublic(true);
+
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXEN16931XmlBuilder')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXEN16931XmlBuilder')
+            ->addTag('invoice.facturx_builder')
             ->setPublic(true);
 
         $container->setAlias(
             'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface',
             'CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder',
         )->setPublic(true);
+
+        // Register FacturXXmlBuilderFactory with builders
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory')
+            ->addArgument([
+                new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilder'),
+                new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXEN16931XmlBuilder'),
+            ])
+            ->setPublic(true);
 
         $container->register('CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter')
             ->setClass('CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3Converter')
@@ -257,7 +273,7 @@ class TestKernel extends Kernel
             ->addArgument(new Reference('event_dispatcher'))
             ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Provider\CompanyProviderInterface'))
             ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface'))
-            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory'))
             ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface'))
             ->setPublic(true);
 

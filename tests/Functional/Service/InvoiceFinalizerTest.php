@@ -277,9 +277,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
         $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
         $mockFacturXConfig->method('isEnabled')->willReturn(false);
 
-        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
-        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
-            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        $xmlBuilderFactory = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory::class);
+        if (!$xmlBuilderFactory instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory) {
+            throw new \RuntimeException('FacturXXmlBuilderFactory not found');
         }
 
         $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
@@ -296,7 +296,7 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->eventDispatcher,
             $companyProvider,
             $mockFacturXConfig,
-            $xmlBuilder,
+            $xmlBuilderFactory,
             $pdfConverter,
         );
 
@@ -334,9 +334,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
         $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
         $mockFacturXConfig->method('isEnabled')->willReturn(false);
 
-        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
-        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
-            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        $xmlBuilderFactory = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory::class);
+        if (!$xmlBuilderFactory instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory) {
+            throw new \RuntimeException('FacturXXmlBuilderFactory not found');
         }
 
         $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
@@ -353,7 +353,7 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->eventDispatcher,
             $companyProvider,
             $mockFacturXConfig,
-            $xmlBuilder,
+            $xmlBuilderFactory,
             $pdfConverter,
         );
 
@@ -391,9 +391,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
         $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
         $mockFacturXConfig->method('isEnabled')->willReturn(false);
 
-        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
-        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
-            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        $xmlBuilderFactory = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory::class);
+        if (!$xmlBuilderFactory instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory) {
+            throw new \RuntimeException('FacturXXmlBuilderFactory not found');
         }
 
         $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
@@ -410,7 +410,7 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->eventDispatcher,
             $companyProvider,
             $mockFacturXConfig,
-            $xmlBuilder,
+            $xmlBuilderFactory,
             $pdfConverter,
         );
 
@@ -460,9 +460,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
         $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
         $mockFacturXConfig->method('isEnabled')->willReturn(false);
 
-        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
-        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
-            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        $xmlBuilderFactory = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory::class);
+        if (!$xmlBuilderFactory instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory) {
+            throw new \RuntimeException('FacturXXmlBuilderFactory not found');
         }
 
         $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
@@ -479,7 +479,7 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->eventDispatcher,
             $companyProvider,
             $mockFacturXConfig,
-            $xmlBuilder,
+            $xmlBuilderFactory,
             $pdfConverter,
         );
 
@@ -528,9 +528,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
         $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
         $mockFacturXConfig->method('isEnabled')->willReturn(false);
 
-        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
-        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
-            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        $xmlBuilderFactory = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory::class);
+        if (!$xmlBuilderFactory instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory) {
+            throw new \RuntimeException('FacturXXmlBuilderFactory not found');
         }
 
         $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
@@ -547,7 +547,7 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->eventDispatcher,
             $companyProvider,
             $mockFacturXConfig,
-            $xmlBuilder,
+            $xmlBuilderFactory,
             $pdfConverter,
         );
 
@@ -596,9 +596,9 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
         $mockFacturXConfig = $this->createMock(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXConfigProviderInterface::class);
         $mockFacturXConfig->method('isEnabled')->willReturn(false);
 
-        $xmlBuilder = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface::class);
-        if (!$xmlBuilder instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderInterface) {
-            throw new \RuntimeException('FacturXXmlBuilderInterface not found');
+        $xmlBuilderFactory = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory::class);
+        if (!$xmlBuilderFactory instanceof \CorentinBoutillier\InvoiceBundle\Service\FacturX\FacturXXmlBuilderFactory) {
+            throw new \RuntimeException('FacturXXmlBuilderFactory not found');
         }
 
         $pdfConverter = $this->kernel->getContainer()->get(\CorentinBoutillier\InvoiceBundle\Service\FacturX\PdfA3ConverterInterface::class);
@@ -615,7 +615,7 @@ final class InvoiceFinalizerTest extends RepositoryTestCase
             $this->eventDispatcher,
             $companyProvider,
             $mockFacturXConfig,
-            $xmlBuilder,
+            $xmlBuilderFactory,
             $pdfConverter,
         );
 

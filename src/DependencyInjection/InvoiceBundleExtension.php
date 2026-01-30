@@ -54,6 +54,14 @@ class InvoiceBundleExtension extends Extension
         $container->setParameter('invoice.factur_x.enabled', $facturX['enabled']);
         $container->setParameter('invoice.factur_x.profile', $facturX['profile']);
         $container->setParameter('invoice.factur_x.xml_filename', $facturX['xml_filename']);
+        $container->setParameter('invoice.factur_x.validate_xml', $facturX['validate_xml']);
+
+        /** @var array<string, mixed> $pdp */
+        $pdp = $config['pdp'];
+        $container->setParameter('invoice.pdp', $pdp);
+        $container->setParameter('invoice.pdp.enabled', $pdp['enabled']);
+        $container->setParameter('invoice.pdp.default_connector', $pdp['default_connector']);
+        $container->setParameter('invoice.pdp.auto_send_on_finalize', $pdp['auto_send_on_finalize']);
 
         /** @var array<string, mixed> $company */
         $company = $config['company'];

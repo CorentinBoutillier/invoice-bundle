@@ -31,14 +31,14 @@ class SecurityUserProvider implements UserProviderInterface
     public function getCurrentUser(): ?UserData
     {
         // Security component not available (optional dependency)
-        if ($this->security === null) {
+        if (null === $this->security) {
             return null;
         }
 
         $user = $this->security->getUser();
 
         // No authenticated user
-        if ($user === null) {
+        if (null === $user) {
             return null;
         }
 
