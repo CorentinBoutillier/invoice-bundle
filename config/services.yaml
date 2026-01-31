@@ -84,6 +84,9 @@ services:
             $vatCollectedAccount: '%invoice.accounting.vat_collected_account%'
             $journalCode: '%invoice.accounting.journal_code%'
             $journalLabel: '%invoice.accounting.journal_label%'
+            $bankAccount: '%invoice.accounting.bank_account%'
+            $bankJournalCode: '%invoice.accounting.bank_journal_code%'
+            $bankJournalLabel: '%invoice.accounting.bank_journal_label%'
 
     CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporterInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporter

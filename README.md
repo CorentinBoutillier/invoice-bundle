@@ -33,14 +33,33 @@
 - **Multi-TVA** : Support des différents taux français (20%, 10%, 5.5%, 2.1%)
 - **Remises** : Par ligne et globales (montant fixe ou pourcentage)
 
-### 📄 Génération PDF
+### 📄 Génération PDF & Factur-X
 - **Templates Twig** : Personnalisables par héritage
-- **Factur-X (ZUGFeRD)** : PDF/A-3 avec XML EN 16931 embarqué pour la facturation électronique (profil BASIC)
+- **Factur-X (ZUGFeRD)** : PDF/A-3 avec XML embarqué pour la facturation électronique
+  - Profil **BASIC** (recommandé) : pleinement implémenté
+  - Profil **EN16931** : support complet avec FacturXEN16931XmlBuilder
+- **Validation XML** : Vérification de conformité des fichiers Factur-X
 - **Stockage flexible** : Filesystem par défaut, extensible (S3, etc.)
 
-### 📊 Export comptable
-- **Export FEC** : Fichier des Écritures Comptables à 18 colonnes conforme à la réglementation
-- **Plan comptable** : Paramétrable (comptes clients, ventes, TVA)
+### 📡 PDP - Plateforme de Dématérialisation Partenaire
+- **Architecture extensible** : Interface `PdpConnectorInterface` pour intégrer n'importe quelle PDP
+- **Dispatcher** : Routage automatique vers le bon connecteur
+- **NullConnector** : Implémentation par défaut pour tests et développement (aucun connecteur réel fourni)
+- **Événements** : `InvoiceTransmittedEvent`, `InvoiceTransmissionFailedEvent`
+- **Suivi des transmissions** : Entité `InvoiceTransmission` avec statuts
+
+### 📊 Export comptable (FEC)
+- **18 colonnes conformes** : Format légal français avec séparateur pipe
+- **Lettrage automatique** : Rapprochement factures/paiements (EcritureLet, DateLet)
+- **Journal Banque** : Écritures de règlement automatiques (compte 512000)
+- **Multi-TVA** : Une ligne par taux de TVA distinct
+- **Plan comptable** : Comptes paramétrables (clients, ventes, TVA, banque)
+- **Format français** : Virgule comme séparateur décimal
+
+### 📈 E-Reporting
+- **Déclaration fiscale** : Génération des transactions e-reporting
+- **Périodes de déclaration** : Calcul automatique selon la fréquence (mensuelle, trimestrielle)
+- **Résumés** : Agrégation par type de transaction et taux de TVA
 
 ### 🔢 Numérotation
 - **Séquentielle** : Thread-safe par exercice comptable
@@ -159,28 +178,79 @@ invoice:
         sales_account: "707000"
         vat_collected_account: "445710"
         journal_code: "VT"
+        journal_label: "Ventes"
+        bank_account: "512000"          # Compte banque pour les paiements
+        bank_journal_code: "BQ"         # Journal banque
+        bank_journal_label: "Banque"
 
     fiscal_year:
         start_month: 1        # 1 = Janvier, 11 = Novembre
+
+    # PDP (Plateforme de Dématérialisation Partenaire)
+    pdp:
+        enabled: true
+        default_connector: "null"       # Connecteur par défaut (null = simulation)
+        auto_send_on_finalize: false    # Envoi automatique à la finalisation
 ```
 
 ### Profils Factur-X supportés
 
-**Profil BASIC (recommandé et pleinement implémenté)** :
-- ✅ Génération XML conforme au profil BASIC (UN/CEFACT CII D16B)
-- ✅ Conversion PDF/A-3 avec métadonnées XMP
-- ✅ Embedding XML validé par les tests fonctionnels
-- ✅ Compatible avec la majorité des logiciels de comptabilité français
+**Profils pleinement implémentés :**
 
-**Autres profils (acceptés par le converter mais XML identique au BASIC)** :
-- ⚠️ `MINIMUM` : Accepté mais génère du XML BASIC (pas assez de données pour le profil MINIMUM)
-- ⚠️ `BASIC_WL` : Accepté mais génère du XML BASIC avec lignes (incompatible BASIC_WL)
-- ⚠️ `EN16931` : Accepté mais génère du XML BASIC (manque des champs obligatoires EN16931)
-- ⚠️ `EXTENDED` : Accepté mais génère du XML BASIC (manque des champs étendus)
+- ✅ **BASIC** (recommandé) : Profil standard pour la majorité des factures
+  - Génération XML conforme UN/CEFACT CII D16B
+  - Conversion PDF/A-3 avec métadonnées XMP
+  - Compatible avec la majorité des logiciels de comptabilité français
 
-**Recommandation** : Utilisez le profil **BASIC** (valeur par défaut) qui couvre 80% des besoins de facturation française.
+- ✅ **EN16931** : Profil européen complet (~165 termes métier)
+  - Builder dédié `FacturXEN16931XmlBuilder`
+  - Requis pour la réforme e-invoicing française (septembre 2026)
+  - Champs supplémentaires : référence acheteur (BT-10), adresse structurée, contact vendeur, etc.
 
-**Extension future** : Pour supporter pleinement les autres profils, il faudrait étendre `FacturXXmlBuilder` pour générer du XML adapté à chaque profil. Contributions bienvenues !
+**Profils non implémentés :**
+- ⚠️ `MINIMUM` : Non supporté
+- ⚠️ `BASIC_WL` : Non supporté
+- ⚠️ `EXTENDED` : Non supporté
+
+**Recommandation** : Utilisez **BASIC** pour les besoins courants, ou **EN16931** pour la conformité e-invoicing 2026.
+
+### Connecteur PDP personnalisé
+
+Pour intégrer une PDP réelle (Chorus Pro, Pennylane, etc.), implémentez `PdpConnectorInterface` :
+
+```php
+use CorentinBoutillier\InvoiceBundle\Pdp\PdpConnectorInterface;
+use CorentinBoutillier\InvoiceBundle\Pdp\Dto\TransmissionResult;
+
+class ChorusProConnector implements PdpConnectorInterface
+{
+    public function getId(): string
+    {
+        return 'chorus_pro';
+    }
+
+    public function transmit(Invoice $invoice, ?string $pdfContent = null, ?string $xmlContent = null): TransmissionResult
+    {
+        // Appeler l'API Chorus Pro
+        $response = $this->chorusClient->submit($invoice, $pdfContent);
+
+        return new TransmissionResult(
+            success: true,
+            transmissionId: $response->getFluxId(),
+            message: 'Facture transmise avec succès',
+        );
+    }
+
+    // ... autres méthodes
+}
+```
+
+Enregistrez-le dans `services.yaml` :
+
+```yaml
+App\Pdp\Connector\ChorusProConnector:
+    tags: ['invoice.pdp_connector']
+```
 
 ### Multi-société (Provider personnalisé)
 

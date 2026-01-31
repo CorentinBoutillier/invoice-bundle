@@ -352,11 +352,11 @@ final class FacturXEN16931XmlBuilder implements FacturXXmlBuilderInterface
         if (!$invoice->getGlobalDiscountAmount()->isZero()) {
             $allowance = $this->createElement('ram:SpecifiedTradeAllowanceCharge');
             $allowance->appendChild($this->createElement('ram:ChargeIndicator'))->appendChild(
-                $this->createElement('udt:Indicator', 'false')
+                $this->createElement('udt:Indicator', 'false'),
             );
             $allowance->appendChild($this->createElement(
                 'ram:ActualAmount',
-                $invoice->getGlobalDiscountAmount()->toEuros()
+                $invoice->getGlobalDiscountAmount()->toEuros(),
             ));
             $allowance->appendChild($this->createElement('ram:Reason', 'Remise globale'));
             $settlement->appendChild($allowance);
@@ -391,7 +391,7 @@ final class FacturXEN16931XmlBuilder implements FacturXXmlBuilderInterface
             $refDoc = $this->createElement('ram:InvoiceReferencedDocument');
             $refDoc->appendChild($this->createElement(
                 'ram:IssuerAssignedID',
-                $invoice->getCreditedInvoice()->getNumber() ?? ''
+                $invoice->getCreditedInvoice()->getNumber() ?? '',
             ));
             $settlement->appendChild($refDoc);
         }
@@ -650,7 +650,7 @@ final class FacturXEN16931XmlBuilder implements FacturXXmlBuilderInterface
         // BT-152: VAT rate
         $tax->appendChild($this->createElement(
             'ram:RateApplicablePercent',
-            number_format($line->getVatRate(), 2, '.', '')
+            number_format($line->getVatRate(), 2, '.', ''),
         ));
         $settlement->appendChild($tax);
 

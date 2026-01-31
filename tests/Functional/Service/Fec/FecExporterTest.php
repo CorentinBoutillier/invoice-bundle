@@ -138,20 +138,20 @@ final class FecExporterTest extends RepositoryTestCase
 
         $lines = explode("\n", $csv);
 
-        // Find customer line (debit 1200.00)
+        // Find customer line (debit 1200,00 - French FEC format with comma)
         $customerLine = $this->findLineContaining($lines, '411000');
         $this->assertNotNull($customerLine, 'Customer line not found');
-        $this->assertStringContainsString('|1200.00|0.00|', $customerLine, 'Customer debit must be 1200.00');
+        $this->assertStringContainsString('|1200,00|0,00|', $customerLine, 'Customer debit must be 1200,00');
 
-        // Find sales line (credit 1000.00)
+        // Find sales line (credit 1000,00 - French FEC format with comma)
         $salesLine = $this->findLineContaining($lines, '707000');
         $this->assertNotNull($salesLine, 'Sales line not found');
-        $this->assertStringContainsString('|0.00|1000.00|', $salesLine, 'Sales credit must be 1000.00');
+        $this->assertStringContainsString('|0,00|1000,00|', $salesLine, 'Sales credit must be 1000,00');
 
-        // Find VAT line (credit 200.00)
+        // Find VAT line (credit 200,00 - French FEC format with comma)
         $vatLine = $this->findLineContaining($lines, '445710');
         $this->assertNotNull($vatLine, 'VAT line not found');
-        $this->assertStringContainsString('|0.00|200.00|', $vatLine, 'VAT credit must be 200.00');
+        $this->assertStringContainsString('|0,00|200,00|', $vatLine, 'VAT credit must be 200,00');
     }
 
     /**
@@ -196,9 +196,9 @@ final class FecExporterTest extends RepositoryTestCase
     }
 
     /**
-     * Test 6: Export formats Money DTO with period as decimal separator.
+     * Test 6: Export formats Money DTO with comma as decimal separator (French FEC format).
      */
-    public function testExportFormatsMoneyWithPeriodSeparator(): void
+    public function testExportFormatsMoneyWithCommaSeparator(): void
     {
         $invoice = $this->createFinalizedInvoice();
         $this->entityManager->persist($invoice);
@@ -209,11 +209,14 @@ final class FecExporterTest extends RepositoryTestCase
             new \DateTimeImmutable('2024-12-31'),
         );
 
-        // Must NOT contain comma as decimal separator
-        $this->assertStringNotContainsString(',00|', $csv, 'Must not use comma as decimal separator');
+        // Must contain comma as decimal separator (French FEC format)
+        $this->assertStringContainsString(',00|', $csv, 'Must use comma as decimal separator');
 
-        // Must contain period as decimal separator
-        $this->assertMatchesRegularExpression('/\|\d+\.\d{2}\|/', $csv, 'Must use period as decimal separator with 2 decimals');
+        // Must contain amounts formatted with comma
+        $this->assertMatchesRegularExpression('/\|\d+,\d{2}\|/', $csv, 'Must use comma as decimal separator with 2 decimals');
+
+        // Must NOT contain period as decimal separator (except in date fields)
+        $this->assertStringNotContainsString('.00|', $csv, 'Must not use period as decimal separator');
     }
 
     /**
@@ -279,15 +282,15 @@ final class FecExporterTest extends RepositoryTestCase
 
         $lines = explode("\n", $csv);
 
-        // Credit note: customer is CREDITED (not debited)
+        // Credit note: customer is CREDITED (not debited) - French FEC format with comma
         $customerLine = $this->findLineContaining($lines, '411000');
         $this->assertNotNull($customerLine, 'Customer line not found');
-        $this->assertMatchesRegularExpression('/\|0\.00\|\d+\.\d{2}\|/', $customerLine, 'Credit note: customer must be credited');
+        $this->assertMatchesRegularExpression('/\|0,00\|\d+,\d{2}\|/', $customerLine, 'Credit note: customer must be credited');
 
-        // Sales account is DEBITED (not credited)
+        // Sales account is DEBITED (not credited) - French FEC format with comma
         $salesLine = $this->findLineContaining($lines, '707000');
         $this->assertNotNull($salesLine, 'Sales line not found');
-        $this->assertMatchesRegularExpression('/\|\d+\.\d{2}\|0\.00\|/', $salesLine, 'Credit note: sales must be debited');
+        $this->assertMatchesRegularExpression('/\|\d+,\d{2}\|0,00\|/', $salesLine, 'Credit note: sales must be debited');
     }
 
     /**
@@ -344,9 +347,9 @@ final class FecExporterTest extends RepositoryTestCase
     }
 
     /**
-     * Test 12: Export uses sequential EcritureNum per invoice.
+     * Test 12: Export uses same EcritureNum for all lines of a single invoice (double-entry).
      */
-    public function testExportUsesSequentialEcritureNum(): void
+    public function testExportUsesSameEcritureNumPerInvoice(): void
     {
         $invoice = $this->createFinalizedInvoice();
         $this->entityManager->persist($invoice);
@@ -370,10 +373,55 @@ final class FecExporterTest extends RepositoryTestCase
             $ecritureNums[] = $columns[2] ?? ''; // EcritureNum is column 3
         }
 
-        // Should have sequential numbers (001, 002, 003)
-        $this->assertCount(3, $ecritureNums, 'Should have 3 EcritureNum entries');
+        // All lines from single invoice should have SAME EcritureNum (double-entry accounting)
+        $this->assertCount(3, $ecritureNums, 'Should have 3 FEC lines (customer + sales + VAT)');
         $this->assertNotEmpty($ecritureNums[0], 'First EcritureNum should not be empty');
-        $this->assertNotSame($ecritureNums[0], $ecritureNums[1], 'EcritureNums should be different');
+        $this->assertSame($ecritureNums[0], $ecritureNums[1], 'All lines of same invoice must have same EcritureNum');
+        $this->assertSame($ecritureNums[0], $ecritureNums[2], 'All lines of same invoice must have same EcritureNum');
+    }
+
+    /**
+     * Test 13: Export uses different EcritureNum for different invoices.
+     */
+    public function testExportUsesDifferentEcritureNumPerInvoice(): void
+    {
+        $invoice1 = $this->createFinalizedInvoice();
+        $invoice1->setNumber('FA-2024-100');
+        $this->entityManager->persist($invoice1);
+
+        $invoice2 = $this->createFinalizedInvoiceWithDate(new \DateTimeImmutable('2024-03-20'));
+        $invoice2->setNumber('FA-2024-101');
+        $this->entityManager->persist($invoice2);
+
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        $lines = explode("\n", $csv);
+        $dataLines = \array_slice($lines, 1); // Skip header
+
+        $ecritureNumsByInvoice = [];
+        foreach ($dataLines as $line) {
+            if (empty(trim($line))) {
+                continue;
+            }
+
+            $columns = explode('|', $line);
+            $ecritureNum = $columns[2] ?? '';
+            $pieceRef = $columns[8] ?? ''; // Invoice number
+
+            if (!empty($pieceRef)) {
+                $ecritureNumsByInvoice[$pieceRef] = $ecritureNum;
+            }
+        }
+
+        // Different invoices should have different EcritureNums
+        $this->assertCount(2, $ecritureNumsByInvoice, 'Should have 2 distinct invoices');
+        $uniqueNums = array_unique(array_values($ecritureNumsByInvoice));
+        $this->assertCount(2, $uniqueNums, 'Different invoices must have different EcritureNums');
     }
 
     // ========================================

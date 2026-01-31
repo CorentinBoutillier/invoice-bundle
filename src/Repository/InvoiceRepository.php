@@ -22,6 +22,8 @@ class InvoiceRepository extends ServiceEntityRepository
     /**
      * Find finalized invoices for FEC export within a date range.
      *
+     * Includes payments for lettrage generation.
+     *
      * @return array<int, Invoice>
      */
     public function findForFecExport(
@@ -29,11 +31,22 @@ class InvoiceRepository extends ServiceEntityRepository
         \DateTimeImmutable $endDate,
         ?int $companyId,
     ): array {
+        // Include all finalized invoices (finalized and beyond, excluding drafts and cancelled)
+        $includedStatuses = [
+            InvoiceStatus::FINALIZED,
+            InvoiceStatus::SENT,
+            InvoiceStatus::PAID,
+            InvoiceStatus::PARTIALLY_PAID,
+            InvoiceStatus::OVERDUE,
+        ];
+
         $qb = $this->createQueryBuilder('i')
-            ->where('i.status = :status')
+            ->leftJoin('i.payments', 'p')
+            ->addSelect('p')
+            ->where('i.status IN (:statuses)')
             ->andWhere('i.date >= :startDate')
             ->andWhere('i.date <= :endDate')
-            ->setParameter('status', InvoiceStatus::FINALIZED)
+            ->setParameter('statuses', $includedStatuses)
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
             ->orderBy('i.date', 'ASC');

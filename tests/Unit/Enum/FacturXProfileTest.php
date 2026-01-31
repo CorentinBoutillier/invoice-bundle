@@ -62,6 +62,8 @@ class FacturXProfileTest extends TestCase
     }
 
     /**
+     * URNs conforming to Factur-X XSD 1.07.3 specification.
+     *
      * @return array<string, array{FacturXProfile, string}>
      */
     public static function urnDataProvider(): array
@@ -69,9 +71,9 @@ class FacturXProfileTest extends TestCase
         return [
             'MINIMUM' => [FacturXProfile::MINIMUM, 'urn:factur-x.eu:1p0:minimum'],
             'BASIC_WL' => [FacturXProfile::BASIC_WL, 'urn:factur-x.eu:1p0:basicwl'],
-            'BASIC' => [FacturXProfile::BASIC, 'urn:factur-x.eu:1p0:basic'],
+            'BASIC' => [FacturXProfile::BASIC, 'urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic'],
             'EN16931' => [FacturXProfile::EN16931, 'urn:cen.eu:en16931:2017'],
-            'EXTENDED' => [FacturXProfile::EXTENDED, 'urn:factur-x.eu:1p0:extended'],
+            'EXTENDED' => [FacturXProfile::EXTENDED, 'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended'],
         ];
     }
 

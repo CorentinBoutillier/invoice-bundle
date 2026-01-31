@@ -437,7 +437,17 @@ Le PDF sera automatiquement généré avec votre template lors de l'appel à `fi
 
 ## 6. Export FEC (Fichier des Écritures Comptables)
 
-Le bundle supporte l'export FEC conforme à la réglementation française (18 colonnes, séparateur pipe).
+Le bundle supporte l'export FEC conforme à la réglementation française.
+
+### Caractéristiques
+
+- **18 colonnes** conformes au format légal
+- **Séparateur pipe** (`|`)
+- **Format français** : virgule comme séparateur décimal (`1200,00`)
+- **Lettrage automatique** : rapprochement factures/paiements (colonnes EcritureLet, DateLet)
+- **Journal Banque** : écritures de règlement automatiques (compte 512000)
+- **Multi-TVA** : une ligne par taux de TVA distinct
+- **EcritureNum unique** : même numéro pour toutes les lignes d'une écriture
 
 ```php
 use CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporterInterface;
@@ -450,28 +460,260 @@ $endDate = new \DateTimeImmutable('2025-12-31');
 
 $csvContent = $fecExporter->export($startDate, $endDate);
 
-// Sauvegarder le fichier
-file_put_contents('FEC_2025.txt', $csvContent);
-
-// Format du fichier :
-// JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|...
-// VT|Ventes|FA-2025-0001|20250115|411000|Clients|...
+// Sauvegarder le fichier avec le nom légal
+// Format : SIREN + "FEC" + date de clôture
+file_put_contents('123456789FEC20251231.txt', $csvContent);
 ```
+
+### Structure des écritures
+
+Pour chaque facture, le FEC génère :
+1. **Écriture de vente (journal VT)** :
+   - Ligne client (411000) - débit TTC
+   - Ligne ventes (707000) - crédit HT
+   - Ligne(s) TVA (445710, etc.) - crédit TVA par taux
+
+2. **Écriture de règlement (journal BQ)** si la facture a des paiements :
+   - Ligne banque (512000) - débit
+   - Ligne client (411000) - crédit avec lettrage
+
+### Lettrage
+
+Le lettrage lie automatiquement les écritures de facturation et de paiement :
+- Code alphabétique (A, B, C... AA, AB...)
+- Date de lettrage = date du dernier paiement
+- Permet de vérifier que toutes les créances sont soldées
 
 ### Via commande CLI
 
 ```bash
-php bin/console invoice:export-fec 2025 --output=FEC_2025.txt
+# Export vers un fichier
+php bin/console invoice:export-fec 2025 --output=123456789FEC20251231.txt
+
+# Export vers stdout
+php bin/console invoice:export-fec 2025
+
+# Export pour une société spécifique (multi-company)
+php bin/console invoice:export-fec 2025 --company-id=42
 ```
 
-Options :
-- `<fiscal-year>` : Année fiscale (obligatoire)
-- `--output=FILE` : Fichier de sortie (optionnel, stdout par défaut)
-- `--company-id=ID` : ID société pour multi-company (optionnel)
+## 7. PDP - Plateforme de Dématérialisation Partenaire
 
-## 7. Bonnes pratiques
+Le bundle fournit une architecture extensible pour transmettre les factures vers les PDP.
 
-### 7.1 Validation des données client
+**Important** : Seul le `NullConnector` (simulation) est fourni. Vous devez implémenter votre propre connecteur pour Chorus Pro, Pennylane, ou autre PDP.
+
+### Architecture
+
+```
+┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐
+│ InvoiceFinalizer│────▶│ PdpDispatcher│────▶│ VotreConnector  │
+│                 │     │              │     │ (à implémenter) │
+└─────────────────┘     └──────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        ┌──────────────┐
+                        │ NullConnector│ (défaut - simulation/tests)
+                        └──────────────┘
+```
+
+### Transmission manuelle
+
+```php
+use CorentinBoutillier\InvoiceBundle\Pdp\PdpDispatcherInterface;
+
+$pdpDispatcher = $container->get(PdpDispatcherInterface::class);
+
+// Transmettre une facture finalisée (utilise le connecteur par défaut)
+$result = $pdpDispatcher->transmit(
+    invoice: $invoice,
+    pdfContent: $pdfContent,
+    xmlContent: $xmlContent,
+);
+
+// Ou avec un connecteur spécifique
+$result = $pdpDispatcher->transmit(
+    invoice: $invoice,
+    connectorId: 'mon_connecteur',
+    pdfContent: $pdfContent,
+);
+
+if ($result->success) {
+    echo "Transmission réussie : " . $result->transmissionId;
+} else {
+    echo "Erreur : " . $result->message;
+}
+```
+
+### Transmission automatique à la finalisation
+
+```yaml
+# config/packages/invoice.yaml
+invoice:
+    pdp:
+        enabled: true
+        default_connector: "null"           # Votre connecteur une fois implémenté
+        auto_send_on_finalize: false        # Activer une fois le connecteur prêt
+```
+
+### Suivi des transmissions
+
+L'entité `InvoiceTransmission` enregistre toutes les transmissions :
+
+```php
+use CorentinBoutillier\InvoiceBundle\Repository\InvoiceTransmissionRepository;
+
+// Récupérer l'historique des transmissions via le repository
+$transmissionRepository = $container->get(InvoiceTransmissionRepository::class);
+$transmissions = $transmissionRepository->findByInvoice($invoice);
+
+foreach ($transmissions as $transmission) {
+    echo $transmission->getTransmissionId();   // ID PDP
+    echo $transmission->getStatus()->value;    // pending, submitted, accepted, rejected...
+    echo $transmission->getConnectorId();      // votre_connecteur
+    echo $transmission->getCreatedAt()->format('Y-m-d H:i:s');
+}
+```
+
+### Événements
+
+```php
+use CorentinBoutillier\InvoiceBundle\Event\InvoiceTransmittedEvent;
+use CorentinBoutillier\InvoiceBundle\Event\InvoiceTransmissionFailedEvent;
+
+class PdpNotificationSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            InvoiceTransmittedEvent::class => 'onTransmitted',
+            InvoiceTransmissionFailedEvent::class => 'onFailed',
+        ];
+    }
+
+    public function onTransmitted(InvoiceTransmittedEvent $event): void
+    {
+        $invoice = $event->getInvoice();
+        $result = $event->getResult();
+        // Notification de succès
+    }
+
+    public function onFailed(InvoiceTransmissionFailedEvent $event): void
+    {
+        $invoice = $event->getInvoice();
+        $errorMessage = $event->getErrorMessage();
+        // Alerte d'échec
+    }
+}
+```
+
+### Implémenter un connecteur personnalisé
+
+```php
+use CorentinBoutillier\InvoiceBundle\Pdp\PdpConnectorInterface;
+use CorentinBoutillier\InvoiceBundle\Pdp\PdpCapability;
+use CorentinBoutillier\InvoiceBundle\Pdp\Dto\TransmissionResult;
+
+class ChorusProConnector implements PdpConnectorInterface
+{
+    public function getId(): string
+    {
+        return 'chorus_pro';
+    }
+
+    public function getName(): string
+    {
+        return 'Chorus Pro';
+    }
+
+    public function getCapabilities(): array
+    {
+        return [
+            PdpCapability::TRANSMIT,
+            PdpCapability::STATUS,
+            PdpCapability::RECEIVE,
+        ];
+    }
+
+    public function transmit(
+        Invoice $invoice,
+        ?string $pdfContent = null,
+        ?string $xmlContent = null,
+    ): TransmissionResult {
+        // Appeler l'API Chorus Pro
+        $response = $this->client->deposerFlux($invoice, $pdfContent);
+
+        return new TransmissionResult(
+            success: true,
+            transmissionId: $response->getIdFlux(),
+            message: 'Facture déposée avec succès',
+        );
+    }
+
+    // ... autres méthodes
+}
+```
+
+## 8. E-Reporting
+
+Le bundle prépare les données pour la déclaration e-reporting à l'administration fiscale.
+
+### Créer une transaction e-reporting
+
+```php
+use CorentinBoutillier\InvoiceBundle\EReporting\EReportingServiceInterface;
+
+$eReportingService = $container->get(EReportingServiceInterface::class);
+
+// Créer une transaction à partir d'une facture
+$transaction = $eReportingService->createTransactionFromInvoice($invoice);
+
+echo $transaction->transactionType->value;  // B2B_FRANCE, B2C, etc.
+echo $transaction->totalExcludingVat;       // "1000.00"
+echo $transaction->totalVat;                // "200.00"
+```
+
+### Obtenir un résumé pour une période
+
+```php
+use CorentinBoutillier\InvoiceBundle\EReporting\Enum\ReportingFrequency;
+
+// Collecter les transactions de la période
+$transactions = [];
+foreach ($invoices as $invoice) {
+    $transactions[] = $eReportingService->createTransactionFromInvoice($invoice);
+}
+
+// Générer le résumé
+$summary = $eReportingService->getSummary(
+    periodStart: new \DateTimeImmutable('2025-01-01'),
+    periodEnd: new \DateTimeImmutable('2025-01-31'),
+    frequency: ReportingFrequency::MONTHLY,
+    transactions: $transactions,
+);
+
+echo $summary->totalExcludingVat;      // Total HT de la période
+echo $summary->totalVat;               // Total TVA de la période
+echo $summary->transactionCount;       // Nombre de transactions
+
+// Détail par taux de TVA
+foreach ($summary->vatByRate as $rate => $amount) {
+    echo "TVA {$rate}% : {$amount}\n";
+}
+```
+
+### Vérifier si une facture nécessite l'e-reporting
+
+```php
+if ($eReportingService->requiresEReporting($invoice)) {
+    // La facture doit être déclarée
+    $transaction = $eReportingService->createTransactionFromInvoice($invoice);
+}
+```
+
+## 9. Bonnes pratiques
+
+### 9.1 Validation des données client
 
 ```php
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -509,7 +751,7 @@ class CustomerDataFactory
 }
 ```
 
-### 7.2 Gestion des erreurs de finalisation
+### 9.2 Gestion des erreurs de finalisation
 
 ```php
 use CorentinBoutillier\InvoiceBundle\Exception\InvoiceFinalizationException;
@@ -529,7 +771,7 @@ try {
 }
 ```
 
-### 7.3 Utilisation correcte de Money
+### 9.3 Utilisation correcte de Money
 
 ```php
 // ✅ BON : Utiliser fromEuros() pour les saisies utilisateur
@@ -555,7 +797,7 @@ $price = Money::fromEuros('99.99');
 $total = $price->multiply(1.2);  // ✅
 ```
 
-### 7.4 Subscribe aux événements pour l'audit
+### 9.4 Subscribe aux événements pour l'audit
 
 ```php
 namespace App\EventSubscriber;
@@ -612,7 +854,7 @@ class InvoiceAuditSubscriber implements EventSubscriberInterface
 }
 ```
 
-### 7.5 Override de template : utiliser includes pour la réutilisabilité
+### 9.5 Override de template : utiliser includes pour la réutilisabilité
 
 ```twig
 {# templates/bundles/InvoiceBundle/invoice/pdf.html.twig #}

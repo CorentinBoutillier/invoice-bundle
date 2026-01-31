@@ -92,7 +92,8 @@ final class FacturXXmlBuilderTest extends TestCase
 
         $profileNodes = $xpath->query('//rsm:ExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID');
         $this->assertCount(1, $profileNodes);
-        $this->assertSame('urn:factur-x.eu:1p0:basic', $profileNodes->item(0)->nodeValue);
+        // URN conforme au XSD Factur-X 1.07.3 pour le profil BASIC
+        $this->assertSame('urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic', $profileNodes->item(0)->nodeValue);
     }
 
     // ========================================
@@ -208,8 +209,8 @@ final class FacturXXmlBuilderTest extends TestCase
         $xpath = new \DOMXPath($doc);
         $xpath->registerNamespace('ram', 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
 
-        // SIRET = French company ID (scheme 0002)
-        $siretNodes = $xpath->query('//ram:SellerTradeParty/ram:ID[@schemeID="0002"]');
+        // SIRET = French company ID in SpecifiedLegalOrganization (scheme 0002, conforme Factur-X 1.07.3)
+        $siretNodes = $xpath->query('//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID[@schemeID="0002"]');
         $this->assertCount(1, $siretNodes);
         $this->assertSame('12345678901234', $siretNodes->item(0)->nodeValue);
     }

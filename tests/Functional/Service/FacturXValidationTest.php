@@ -141,10 +141,10 @@ final class FacturXValidationTest extends RepositoryTestCase
         $this->assertGreaterThan(0, $this->safeQueryXPath($xpath, '//rsm:ExchangedDocument')->count(), 'Missing ExchangedDocument');
         $this->assertGreaterThan(0, $this->safeQueryXPath($xpath, '//rsm:SupplyChainTradeTransaction')->count(), 'Missing SupplyChainTradeTransaction');
 
-        // Vérifier le profil BASIC
+        // Vérifier le profil BASIC (URN conforme au XSD Factur-X 1.07.3)
         $profileNodes = $this->safeQueryXPath($xpath, '//rsm:ExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID');
         $this->assertGreaterThan(0, $profileNodes->count(), 'Missing Factur-X profile declaration');
-        $this->assertSame('urn:factur-x.eu:1p0:basic', $profileNodes->item(0)?->nodeValue, 'Profile should be BASIC');
+        $this->assertSame('urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic', $profileNodes->item(0)?->nodeValue, 'Profile should be BASIC');
     }
 
     // ========================================

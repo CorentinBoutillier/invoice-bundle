@@ -41,6 +41,9 @@ class InvoiceBundleExtension extends Extension
         $container->setParameter('invoice.accounting.vat_collected_account', $accounting['vat_collected_account']);
         $container->setParameter('invoice.accounting.journal_code', $accounting['journal_code']);
         $container->setParameter('invoice.accounting.journal_label', $accounting['journal_label']);
+        $container->setParameter('invoice.accounting.bank_account', $accounting['bank_account']);
+        $container->setParameter('invoice.accounting.bank_journal_code', $accounting['bank_journal_code']);
+        $container->setParameter('invoice.accounting.bank_journal_label', $accounting['bank_journal_label']);
 
         /** @var array<string, mixed> $pdf */
         $pdf = $config['pdf'];
