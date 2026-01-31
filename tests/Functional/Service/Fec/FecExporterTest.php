@@ -600,6 +600,426 @@ final class FecExporterTest extends RepositoryTestCase
     }
 
     /**
+     * Test 14: Export generates payment lines with bank journal.
+     */
+    public function testExportGeneratesPaymentLinesWithBankJournal(): void
+    {
+        $invoice = $this->createFinalizedInvoiceWithPayment();
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        // Should contain bank journal (BQ) for payment
+        $this->assertStringContainsString('BQ|', $csv, 'Must contain bank journal code BQ');
+        $this->assertStringContainsString('|512000|', $csv, 'Must contain bank account 512000');
+        $this->assertStringContainsString('|Banque|', $csv, 'Must contain bank journal label');
+    }
+
+    /**
+     * Test 15: Export generates lettrage code for invoices with payments.
+     */
+    public function testExportGeneratesLettrageCodeForPaidInvoices(): void
+    {
+        $invoice = $this->createFinalizedInvoiceWithPayment();
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        $lines = explode("\n", $csv);
+
+        // Find customer lines (411000) - both invoice and payment should have lettrage
+        $customerLines = array_filter($lines, fn ($line) => str_contains($line, '|411000|'));
+
+        // Should have 2 customer lines: one for invoice (debit), one for payment (credit)
+        $this->assertCount(2, $customerLines, 'Should have 2 customer lines (invoice + payment)');
+
+        // Both should have the same lettrage code (A for first invoice)
+        foreach ($customerLines as $line) {
+            $this->assertMatchesRegularExpression('/\|A\|/', $line, 'Customer lines must have lettrage code A');
+        }
+    }
+
+    /**
+     * Test 16: Export generates sequential lettrage codes for multiple paid invoices.
+     */
+    public function testExportGeneratesSequentialLettrageCodesForMultiplePaidInvoices(): void
+    {
+        $invoice1 = $this->createFinalizedInvoiceWithPayment();
+        $invoice1->setNumber('FA-2024-010');
+        $this->entityManager->persist($invoice1);
+
+        $invoice2 = $this->createFinalizedInvoiceWithPaymentAndDate(new \DateTimeImmutable('2024-03-20'));
+        $invoice2->setNumber('FA-2024-011');
+        $this->entityManager->persist($invoice2);
+
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        // Should have lettrage codes A and B
+        $this->assertStringContainsString('|A|', $csv, 'First invoice must have lettrage code A');
+        $this->assertStringContainsString('|B|', $csv, 'Second invoice must have lettrage code B');
+    }
+
+    /**
+     * Test 17: Export handles VAT rate 5.5%.
+     */
+    public function testExportHandlesVatRate55(): void
+    {
+        $invoice = $this->createInvoiceWithVatRate(5.5);
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        // Should use account 445711 for 5.5% VAT
+        $this->assertStringContainsString('|445711|', $csv, 'Must use VAT account 445711 for 5.5%');
+        $this->assertStringContainsString('TVA 5.5', $csv, 'Must mention TVA 5.5% in description');
+    }
+
+    /**
+     * Test 18: Export handles VAT rate 2.1%.
+     */
+    public function testExportHandlesVatRate21(): void
+    {
+        $invoice = $this->createInvoiceWithVatRate(2.1);
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        // Should use account 445713 for 2.1% VAT
+        $this->assertStringContainsString('|445713|', $csv, 'Must use VAT account 445713 for 2.1%');
+        $this->assertStringContainsString('TVA 2.1', $csv, 'Must mention TVA 2.1% in description');
+    }
+
+    /**
+     * Test 19: Export filters by companyId.
+     */
+    public function testExportFiltersByCompanyId(): void
+    {
+        $invoice1 = $this->createFinalizedInvoice();
+        $invoice1->setNumber('FA-2024-C1');
+        $invoice1->setCompanyId(1);
+        $this->entityManager->persist($invoice1);
+
+        $invoice2 = $this->createFinalizedInvoiceWithDate(new \DateTimeImmutable('2024-03-20'));
+        $invoice2->setNumber('FA-2024-C2');
+        $invoice2->setCompanyId(2);
+        $this->entityManager->persist($invoice2);
+
+        $this->entityManager->flush();
+
+        // Export only company 1
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+            companyId: 1,
+        );
+
+        $this->assertStringContainsString('FA-2024-C1', $csv, 'Must contain company 1 invoice');
+        $this->assertStringNotContainsString('FA-2024-C2', $csv, 'Must not contain company 2 invoice');
+    }
+
+    /**
+     * Test 20: Export uses customer SIRET as CompAuxNum when available.
+     */
+    public function testExportUsesCustomerSiretAsCompAuxNum(): void
+    {
+        $invoice = $this->createFinalizedInvoice();
+        $invoice->setCustomerSiret('12345678901234');
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        $this->assertStringContainsString('|12345678901234|', $csv, 'Must use customer SIRET as CompAuxNum');
+    }
+
+    /**
+     * Test 21: Export generates CompAuxNum from customer name when SIRET not available.
+     */
+    public function testExportGeneratesCompAuxNumFromCustomerName(): void
+    {
+        $invoice = $this->createFinalizedInvoice();
+        // No SIRET set, should generate from name "Acme Corporation"
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        // Should contain sanitized name (uppercase, no special chars)
+        $this->assertStringContainsString('|ACMECORPORATION|', $csv, 'Must generate CompAuxNum from customer name');
+    }
+
+    /**
+     * Test 22: Export handles customer name with accents (removes accents for CompAuxNum).
+     */
+    public function testExportRemovesAccentsFromCustomerName(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable('2024-03-15'),
+            dueDate: new \DateTimeImmutable('2024-04-15'),
+            customerName: 'Société Générale',
+            customerAddress: '123 Rue de Paris, 75001 Paris, France',
+            companyName: 'Test Company SARL',
+            companyAddress: '456 Company Avenue, 75002 Paris, France',
+        );
+
+        $invoice->setStatus(InvoiceStatus::FINALIZED);
+        $invoice->setNumber('FA-2024-ACC');
+
+        $line = new InvoiceLine(
+            description: 'Service test',
+            unitPrice: Money::fromEuros('100.00'),
+            quantity: 1,
+            vatRate: 20.0,
+        );
+        $invoice->addLine($line);
+
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        // Should contain sanitized name without accents in CompAuxNum
+        $this->assertStringContainsString('|SOCIETEGENERALE|', $csv, 'Must remove accents from customer name in CompAuxNum');
+        // CompAuxLib should still contain the original name with accents
+        $this->assertStringContainsString('|Société Générale|', $csv, 'CompAuxLib should keep original name with accents');
+    }
+
+    /**
+     * Test 23: Export maintains double-entry balance with payments.
+     */
+    public function testExportMaintainsDoubleEntryBalanceWithPayments(): void
+    {
+        $invoice = $this->createFinalizedInvoiceWithPayment();
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        $lines = explode("\n", $csv);
+        $dataLines = \array_slice($lines, 1);
+
+        $totalDebit = 0.0;
+        $totalCredit = 0.0;
+
+        foreach ($dataLines as $line) {
+            if (empty(trim($line))) {
+                continue;
+            }
+
+            $columns = explode('|', $line);
+            // French format uses comma as decimal separator
+            $debit = (float) str_replace(',', '.', $columns[11] ?? '0');
+            $credit = (float) str_replace(',', '.', $columns[12] ?? '0');
+
+            $totalDebit += $debit;
+            $totalCredit += $credit;
+        }
+
+        $this->assertEqualsWithDelta(
+            $totalDebit,
+            $totalCredit,
+            0.01,
+            'Total debits must equal total credits with payments',
+        );
+    }
+
+    /**
+     * Test 24: Export handles paid and partially paid invoices.
+     */
+    public function testExportHandlesPaidAndPartiallyPaidStatuses(): void
+    {
+        // Create PAID invoice
+        $paidInvoice = $this->createFinalizedInvoiceWithPayment();
+        $paidInvoice->setNumber('FA-2024-PAID');
+        $paidInvoice->setStatus(InvoiceStatus::PAID);
+        $this->entityManager->persist($paidInvoice);
+
+        // Create PARTIALLY_PAID invoice
+        $partialInvoice = $this->createFinalizedInvoiceWithPaymentAndDate(new \DateTimeImmutable('2024-03-20'));
+        $partialInvoice->setNumber('FA-2024-PARTIAL');
+        $partialInvoice->setStatus(InvoiceStatus::PARTIALLY_PAID);
+        $this->entityManager->persist($partialInvoice);
+
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        $this->assertStringContainsString('FA-2024-PAID', $csv, 'Must include PAID invoice');
+        $this->assertStringContainsString('FA-2024-PARTIAL', $csv, 'Must include PARTIALLY_PAID invoice');
+    }
+
+    /**
+     * Test 25: Export uses different EcritureNum for invoice and payment entries.
+     */
+    public function testExportUsesDifferentEcritureNumForInvoiceAndPayment(): void
+    {
+        $invoice = $this->createFinalizedInvoiceWithPayment();
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $csv = $this->fecExporter->export(
+            new \DateTimeImmutable('2024-01-01'),
+            new \DateTimeImmutable('2024-12-31'),
+        );
+
+        $lines = explode("\n", $csv);
+        $dataLines = \array_slice($lines, 1);
+
+        $ecritureNums = [];
+        foreach ($dataLines as $line) {
+            if (empty(trim($line))) {
+                continue;
+            }
+
+            $columns = explode('|', $line);
+            $ecritureNum = $columns[2] ?? '';
+            if (!empty($ecritureNum) && !\in_array($ecritureNum, $ecritureNums, true)) {
+                $ecritureNums[] = $ecritureNum;
+            }
+        }
+
+        // Should have 2 different EcritureNums: one for invoice, one for payment
+        $this->assertCount(2, $ecritureNums, 'Should have 2 different EcritureNums (invoice + payment)');
+    }
+
+    // ========================================
+    // Additional Helper Methods
+    // ========================================
+
+    private function createFinalizedInvoiceWithPayment(): Invoice
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable('2024-03-15'),
+            dueDate: new \DateTimeImmutable('2024-04-15'),
+            customerName: 'Paid Customer Corp',
+            customerAddress: '555 Payment Street, 75008 Paris, France',
+            companyName: 'Test Company SARL',
+            companyAddress: '456 Company Avenue, 75002 Paris, France',
+        );
+
+        $invoice->setStatus(InvoiceStatus::PAID);
+        $invoice->setNumber('FA-2024-PAY');
+
+        $line = new InvoiceLine(
+            description: 'Service with payment',
+            unitPrice: Money::fromEuros('500.00'),
+            quantity: 2,
+            vatRate: 20.0,
+        );
+        $invoice->addLine($line);
+
+        // Add payment with proper bidirectional relation
+        $payment = new \CorentinBoutillier\InvoiceBundle\Entity\Payment(
+            amount: Money::fromEuros('1200.00'),
+            paidAt: new \DateTimeImmutable('2024-03-20'),
+            method: \CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod::BANK_TRANSFER,
+        );
+        $payment->setInvoice($invoice);
+        $invoice->addPayment($payment);
+
+        return $invoice;
+    }
+
+    private function createFinalizedInvoiceWithPaymentAndDate(\DateTimeImmutable $date): Invoice
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: $date,
+            dueDate: $date->modify('+30 days'),
+            customerName: 'Another Paid Customer',
+            customerAddress: '666 Payment Avenue, 75009 Paris, France',
+            companyName: 'Test Company SARL',
+            companyAddress: '456 Company Avenue, 75002 Paris, France',
+        );
+
+        $invoice->setStatus(InvoiceStatus::PAID);
+        $invoice->setNumber('FA-'.$date->format('Y').'-PAY2');
+
+        $line = new InvoiceLine(
+            description: 'Another service with payment',
+            unitPrice: Money::fromEuros('300.00'),
+            quantity: 1,
+            vatRate: 20.0,
+        );
+        $invoice->addLine($line);
+
+        // Add payment with proper bidirectional relation
+        $payment = new \CorentinBoutillier\InvoiceBundle\Entity\Payment(
+            amount: Money::fromEuros('360.00'),
+            paidAt: $date->modify('+5 days'),
+            method: \CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod::BANK_TRANSFER,
+        );
+        $payment->setInvoice($invoice);
+        $invoice->addPayment($payment);
+
+        return $invoice;
+    }
+
+    private function createInvoiceWithVatRate(float $vatRate): Invoice
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable('2024-03-15'),
+            dueDate: new \DateTimeImmutable('2024-04-15'),
+            customerName: 'VAT Rate Test Corp',
+            customerAddress: '777 VAT Street, 75010 Paris, France',
+            companyName: 'Test Company SARL',
+            companyAddress: '456 Company Avenue, 75002 Paris, France',
+        );
+
+        $invoice->setStatus(InvoiceStatus::FINALIZED);
+        $invoice->setNumber('FA-2024-VAT'.str_replace('.', '', (string) $vatRate));
+
+        $line = new InvoiceLine(
+            description: \sprintf('Service at %.1f%% VAT', $vatRate),
+            unitPrice: Money::fromEuros('100.00'),
+            quantity: 1,
+            vatRate: $vatRate,
+        );
+        $invoice->addLine($line);
+
+        return $invoice;
+    }
+
+    /**
      * Find first line containing a specific substring.
      *
      * @param string[] $lines

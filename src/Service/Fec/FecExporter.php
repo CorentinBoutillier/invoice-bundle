@@ -583,7 +583,7 @@ final class FecExporter implements FecExporterInterface
         $code = '';
         while ($number > 0) {
             --$number;
-            $code = \chr(65 + ($number % 26)) . $code;
+            $code = \chr(65 + ($number % 26)).$code;
             $number = (int) ($number / 26);
         }
 

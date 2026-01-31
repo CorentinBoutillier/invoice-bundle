@@ -1,6 +1,121 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Parameter \\#2 \\$value of method Symfony\\\\Component\\\\DependencyInjection\\\\Container\\:\\:setParameter\\(\\) expects array\\|bool\\|float\\|int\\|string\\|UnitEnum\\|null, mixed given\\.$#"
+			count: 17
+			path: src/DependencyInjection/InvoiceBundleExtension.php
+
+		-
+			message: "#^Method CorentinBoutillier\\\\InvoiceBundle\\\\EReporting\\\\EReportingService\\:\\:calculateVatBreakdown\\(\\) should return array\\<string, string\\> but returns array\\<int\\|string, string\\>\\.$#"
+			count: 1
+			path: src/EReporting/EReportingService.php
+
+		-
+			message: "#^Parameter \\$email of class CorentinBoutillier\\\\InvoiceBundle\\\\DTO\\\\UserData constructor expects string\\|null, mixed given\\.$#"
+			count: 1
+			path: src/Provider/SecurityUserProvider.php
+
+		-
+			message: "#^Parameter \\$name of class CorentinBoutillier\\\\InvoiceBundle\\\\DTO\\\\UserData constructor expects string\\|null, mixed given\\.$#"
+			count: 1
+			path: src/Provider/SecurityUserProvider.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\EReporting\\\\EReportingSchedulerTest has an uninitialized property \\$scheduler\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/EReporting/EReportingSchedulerTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\EReporting\\\\EReportingServiceTest has an uninitialized property \\$service\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/EReporting/EReportingServiceTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Entity\\\\InvoiceTransmissionTest has an uninitialized property \\$invoice\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Entity/InvoiceTransmissionTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmissionFailedEventTest has an uninitialized property \\$invoice\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Event/InvoiceTransmissionFailedEventTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmittedEventTest has an uninitialized property \\$event\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Event/InvoiceTransmittedEventTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmittedEventTest has an uninitialized property \\$invoice\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Event/InvoiceTransmittedEventTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmittedEventTest has an uninitialized property \\$result\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Event/InvoiceTransmittedEventTest.php
+
+		-
+			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Pdp\\\\Connector\\\\NullConnectorTest has an uninitialized property \\$connector\\. Give it default value or assign it in the constructor\\.$#"
+			count: 1
+			path: tests/Unit/Pdp/Connector/NullConnectorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$transmissionId of method CorentinBoutillier\\\\InvoiceBundle\\\\Pdp\\\\Connector\\\\NullConnector\\:\\:getStatus\\(\\) expects string, string\\|null given\\.$#"
+			count: 1
+			path: tests/Unit/Pdp/Connector/NullConnectorTest.php
+
+		-
+			message: "#^Call to an undefined method CorentinBoutillier\\\\InvoiceBundle\\\\Pdp\\\\PdpConnectorInterface\\:\\:method\\(\\)\\.$#"
+			count: 4
+			path: tests/Unit/Pdp/PdpDispatcherTest.php
+
+		-
+			message: "#^Cannot call method willReturn\\(\\) on mixed\\.$#"
+			count: 4
+			path: tests/Unit/Pdp/PdpDispatcherTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Provider/SecurityUserProviderTest\\.php\\:195\\:\\:getUserIdentifier\\(\\) should return non\\-empty\\-string but returns string\\.$#"
+			count: 1
+			path: tests/Unit/Provider/SecurityUserProviderTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Provider/SecurityUserProviderTest\\.php\\:225\\:\\:getUserIdentifier\\(\\) should return non\\-empty\\-string but returns string\\.$#"
+			count: 1
+			path: tests/Unit/Provider/SecurityUserProviderTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Provider/SecurityUserProviderTest\\.php\\:255\\:\\:getUserIdentifier\\(\\) should return non\\-empty\\-string but returns string\\.$#"
+			count: 1
+			path: tests/Unit/Provider/SecurityUserProviderTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Provider/SecurityUserProviderTest\\.php\\:285\\:\\:getUserIdentifier\\(\\) should return non\\-empty\\-string but returns string\\.$#"
+			count: 1
+			path: tests/Unit/Provider/SecurityUserProviderTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Provider/SecurityUserProviderTest\\.php\\:315\\:\\:getUserIdentifier\\(\\) should return non\\-empty\\-string but returns string\\.$#"
+			count: 1
+			path: tests/Unit/Provider/SecurityUserProviderTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Provider/SecurityUserProviderTest\\.php\\:351\\:\\:getUserIdentifier\\(\\) should return non\\-empty\\-string but returns string\\.$#"
+			count: 1
+			path: tests/Unit/Provider/SecurityUserProviderTest.php
+
+		-
+			message: "#^Cannot call method item\\(\\) on DOMNodeList\\<DOMNode\\>\\|false\\.$#"
+			count: 57
+			path: tests/Unit/Service/FacturX/FacturXEN16931XmlBuilderTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, DOMNodeList\\<DOMNode\\>\\|false given\\.$#"
+			count: 43
+			path: tests/Unit/Service/FacturX/FacturXEN16931XmlBuilderTest.php
+
+		-
 			message: "#^Cannot access property \\$nodeValue on DOMNode\\|null\\.$#"
 			count: 30
 			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
@@ -44,128 +159,3 @@ parameters:
 			message: "#^Parameter \\#2 \\$string of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertMatchesRegularExpression\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: tests/Unit/Service/FacturX/FacturXXmlBuilderTest.php
-
-		-
-			message: "#^Call to an undefined method CorentinBoutillier\\\\InvoiceBundle\\\\Pdp\\\\PdpConnectorInterface\\:\\:method\\(\\)\\.$#"
-			count: 4
-			path: tests/Unit/Pdp/PdpDispatcherTest.php
-
-		-
-			message: "#^Cannot call method willReturn\\(\\) on mixed\\.$#"
-			count: 4
-			path: tests/Unit/Pdp/PdpDispatcherTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Pdp\\\\Connector\\\\NullConnectorTest has an uninitialized property \\$connector\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/Pdp/Connector/NullConnectorTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$transmissionId of method CorentinBoutillier\\\\InvoiceBundle\\\\Pdp\\\\Connector\\\\NullConnector\\:\\:getStatus\\(\\) expects string, string\\|null given\\.$#"
-			count: 1
-			path: tests/Unit/Pdp/Connector/NullConnectorTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmittedEventTest has an uninitialized property \\$invoice\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/Event/InvoiceTransmittedEventTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmittedEventTest has an uninitialized property \\$result\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/Event/InvoiceTransmittedEventTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmittedEventTest has an uninitialized property \\$event\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/Event/InvoiceTransmittedEventTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Event\\\\InvoiceTransmissionFailedEventTest has an uninitialized property \\$invoice\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/Event/InvoiceTransmissionFailedEventTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$value of method Symfony\\\\Component\\\\DependencyInjection\\\\Container\\:\\:setParameter\\(\\) expects array\\|bool\\|float\\|int\\|string\\|UnitEnum\\|null, mixed given\\.$#"
-			count: 17
-			path: src/DependencyInjection/InvoiceBundleExtension.php
-
-		-
-			message: "#^Parameter \\$security of method CorentinBoutillier\\\\InvoiceBundle\\\\Provider\\\\SecurityUserProvider\\:\\:__construct\\(\\) has invalid type Symfony\\\\Bundle\\\\SecurityBundle\\\\Security\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Property CorentinBoutillier\\\\InvoiceBundle\\\\Provider\\\\SecurityUserProvider\\:\\:\\$security has unknown class Symfony\\\\Bundle\\\\SecurityBundle\\\\Security as its type\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Call to method getUser\\(\\) on an unknown class Symfony\\\\Bundle\\\\SecurityBundle\\\\Security\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Cannot call method getUserIdentifier\\(\\) on mixed\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Parameter \\#1 \\$object_or_class of function method_exists expects object\\|string, mixed given\\.$#"
-			count: 4
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Cannot call method getFullName\\(\\) on class\\-string\\|object\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Cannot call method getName\\(\\) on class\\-string\\|object\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Cannot call method getUsername\\(\\) on class\\-string\\|object\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Cannot call method getEmail\\(\\) on class\\-string\\|object\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Parameter \\$id of class CorentinBoutillier\\\\InvoiceBundle\\\\DTO\\\\UserData constructor expects string, mixed given\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Parameter \\$name of class CorentinBoutillier\\\\InvoiceBundle\\\\DTO\\\\UserData constructor expects string\\|null, mixed given\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Parameter \\$email of class CorentinBoutillier\\\\InvoiceBundle\\\\DTO\\\\UserData constructor expects string\\|null, mixed given\\.$#"
-			count: 1
-			path: src/Provider/SecurityUserProvider.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\Entity\\\\InvoiceTransmissionTest has an uninitialized property \\$invoice\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/Entity/InvoiceTransmissionTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\EReporting\\\\EReportingSchedulerTest has an uninitialized property \\$scheduler\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/EReporting/EReportingSchedulerTest.php
-
-		-
-			message: "#^Class CorentinBoutillier\\\\InvoiceBundle\\\\Tests\\\\Unit\\\\EReporting\\\\EReportingServiceTest has an uninitialized property \\$service\\. Give it default value or assign it in the constructor\\.$#"
-			count: 1
-			path: tests/Unit/EReporting/EReportingServiceTest.php
-
-		-
-			message: "#^Method CorentinBoutillier\\\\InvoiceBundle\\\\EReporting\\\\EReportingService\\:\\:calculateVatBreakdown\\(\\) should return array\\<string, string\\> but returns array\\<int\\|string, string\\>\\.$#"
-			count: 1
-			path: src/EReporting/EReportingService.php
