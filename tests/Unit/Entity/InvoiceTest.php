@@ -2020,4 +2020,51 @@ final class InvoiceTest extends TestCase
         // Country code seul ne suffit pas pour une adresse de livraison
         $this->assertFalse($invoice->hasDeliveryAddress());
     }
+
+    // ========== Lettrage Entries ==========
+
+    public function testGetLettrageEntriesIsEmptyByDefault(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertCount(0, $invoice->getLettrageEntries());
+    }
+
+    public function testGetLettrageCodeReturnsNullWithoutEntries(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertNull($invoice->getLettrageCode());
+    }
+
+    public function testGetLettrageReturnsNullWithoutEntries(): void
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable('+30 days'),
+            customerName: 'Customer',
+            customerAddress: 'Address',
+            companyName: 'Company',
+            companyAddress: 'Address',
+        );
+
+        $this->assertNull($invoice->getLettrage());
+    }
 }

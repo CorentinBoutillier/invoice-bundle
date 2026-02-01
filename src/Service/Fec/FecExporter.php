@@ -54,9 +54,6 @@ final class FecExporter implements FecExporterInterface
     /** Counter for sequential EcritureNum generation (one per invoice, not per line). */
     private int $ecritureCounter = 0;
 
-    /** Counter for lettrage code generation. */
-    private int $lettrageCounter = 0;
-
     /** Current EcritureNum for the invoice being processed. */
     private string $currentEcritureNum = '';
 
@@ -78,9 +75,8 @@ final class FecExporter implements FecExporterInterface
         \DateTimeImmutable $endDate,
         ?int $companyId = null,
     ): string {
-        // Reset counters for each export
+        // Reset counter for each export
         $this->ecritureCounter = 0;
-        $this->lettrageCounter = 0;
 
         // Fetch finalized invoices in date range
         $invoices = $this->invoiceRepository->findForFecExport($startDate, $endDate, $companyId);
@@ -126,18 +122,10 @@ final class FecExporter implements FecExporterInterface
 
         $isCreditNote = InvoiceType::CREDIT_NOTE === $invoice->getType();
 
-        // Generate lettrage code if invoice has payments
-        $lettrageCode = '';
-        $lettrageDate = '';
-        $payments = $invoice->getPayments();
-        if (\count($payments) > 0) {
-            $lettrageCode = $this->generateLettrageCode();
-            // Get the last payment date for lettrage
-            $lastPayment = $this->getLastPayment($payments);
-            if ($lastPayment) {
-                $lettrageDate = $this->formatDate($lastPayment->getPaidAt());
-            }
-        }
+        // Get lettrage from persisted entity (if invoice is lettrée)
+        $lettrage = $invoice->getLettrage();
+        $lettrageCode = $lettrage?->getCode() ?? '';
+        $lettrageDate = $lettrage ? $this->formatDate($lettrage->getDate()) : '';
 
         $lines = [
             $this->createCustomerLine($invoice, $isCreditNote, $lettrageCode, $lettrageDate),
@@ -170,15 +158,15 @@ final class FecExporter implements FecExporterInterface
         $lines = [];
         $isCreditNote = InvoiceType::CREDIT_NOTE === $invoice->getType();
 
-        // Get the lettrage code (same as the one used for the invoice customer line)
-        $lettrageCode = $this->getCurrentLettrageCode();
+        // Get lettrage from persisted entity (same as the one used for the invoice customer line)
+        $lettrage = $invoice->getLettrage();
+        $lettrageCode = $lettrage?->getCode() ?? '';
+        $lettrageDate = $lettrage ? $this->formatDate($lettrage->getDate()) : '';
 
         foreach ($payments as $payment) {
             // New EcritureNum for each payment
             ++$this->ecritureCounter;
             $this->currentEcritureNum = str_pad((string) $this->ecritureCounter, 6, '0', \STR_PAD_LEFT);
-
-            $lettrageDate = $this->formatDate($payment->getPaidAt());
 
             $lines[] = $this->createBankLine($invoice, $payment, $isCreditNote);
             $lines[] = $this->createPaymentCustomerLine($invoice, $payment, $isCreditNote, $lettrageCode, $lettrageDate);
@@ -555,59 +543,5 @@ final class FecExporter implements FecExporterInterface
         }
 
         return $transliterator->transliterate($string) ?: $string;
-    }
-
-    /**
-     * Generate a unique lettrage code (A, B, C... AA, AB...).
-     */
-    private function generateLettrageCode(): string
-    {
-        ++$this->lettrageCounter;
-
-        return $this->numberToLettrageCode($this->lettrageCounter);
-    }
-
-    /**
-     * Get current lettrage code without incrementing.
-     */
-    private function getCurrentLettrageCode(): string
-    {
-        return $this->numberToLettrageCode($this->lettrageCounter);
-    }
-
-    /**
-     * Convert number to lettrage code (1=A, 2=B, 26=Z, 27=AA, etc.).
-     */
-    private function numberToLettrageCode(int $number): string
-    {
-        $code = '';
-        while ($number > 0) {
-            --$number;
-            $code = \chr(65 + ($number % 26)).$code;
-            $number = (int) ($number / 26);
-        }
-
-        return $code;
-    }
-
-    /**
-     * Get the last payment by date.
-     *
-     * @param array<int, Payment> $payments
-     */
-    private function getLastPayment(array $payments): ?Payment
-    {
-        if (0 === \count($payments)) {
-            return null;
-        }
-
-        $lastPayment = $payments[0];
-        foreach ($payments as $payment) {
-            if ($payment->getPaidAt() > $lastPayment->getPaidAt()) {
-                $lastPayment = $payment;
-            }
-        }
-
-        return $lastPayment;
     }
 }

@@ -32,12 +32,16 @@ interface PaymentManagerInterface
      * - InvoicePaidEvent : Quand la facture devient entièrement payée
      * - InvoicePartiallyPaidEvent : Pour chaque paiement partiel
      *
+     * Si $autoLettrage est true et que la facture est entièrement payée,
+     * un lettrage est automatiquement créé pour le rapprochement comptable.
+     *
      * @param Invoice $invoice Facture sur laquelle enregistrer le paiement
      * @param Money $amount Montant du paiement
      * @param \DateTimeImmutable $paidAt Date du paiement
      * @param PaymentMethod $method Méthode de paiement
      * @param string|null $reference Référence du paiement (optionnel)
      * @param string|null $notes Notes sur le paiement (optionnel)
+     * @param bool $autoLettrage Créer automatiquement un lettrage si facture entièrement payée (défaut: true)
      *
      * @return Payment Le paiement créé et persisté
      *
@@ -50,5 +54,6 @@ interface PaymentManagerInterface
         PaymentMethod $method,
         ?string $reference = null,
         ?string $notes = null,
+        bool $autoLettrage = true,
     ): Payment;
 }

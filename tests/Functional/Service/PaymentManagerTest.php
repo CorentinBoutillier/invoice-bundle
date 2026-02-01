@@ -404,6 +404,113 @@ final class PaymentManagerTest extends RepositoryTestCase
         $this->assertTrue($invoice->getTotalPaid()->isZero());
     }
 
+    // ========== Auto-Lettrage Tests ==========
+
+    public function testRecordFullPaymentCreatesLettrage(): void
+    {
+        $invoice = $this->createInvoiceWithAmount(120.00);
+        $invoiceId = $invoice->getId();
+
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('120.00'),
+            paidAt: new \DateTimeImmutable(),
+            method: PaymentMethod::BANK_TRANSFER,
+            autoLettrage: true,
+        );
+
+        // Recharger depuis la base pour avoir les relations à jour
+        $this->entityManager->clear();
+        $reloadedInvoice = $this->invoiceRepository->find($invoiceId);
+
+        $this->assertNotNull($reloadedInvoice);
+        $this->assertNotNull($reloadedInvoice->getLettrageCode());
+        $this->assertSame('A', $reloadedInvoice->getLettrageCode());
+    }
+
+    public function testRecordPartialPaymentDoesNotCreateLettrage(): void
+    {
+        $invoice = $this->createInvoiceWithAmount(120.00);
+        $invoiceId = $invoice->getId();
+
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('60.00'),
+            paidAt: new \DateTimeImmutable(),
+            method: PaymentMethod::BANK_TRANSFER,
+            autoLettrage: true,
+        );
+
+        // Recharger depuis la base
+        $this->entityManager->clear();
+        $reloadedInvoice = $this->invoiceRepository->find($invoiceId);
+
+        // Pas de lettrage pour un paiement partiel
+        $this->assertNotNull($reloadedInvoice);
+        $this->assertNull($reloadedInvoice->getLettrageCode());
+    }
+
+    public function testRecordFullPaymentWithAutoLettrageDisabled(): void
+    {
+        $invoice = $this->createInvoiceWithAmount(120.00);
+        $invoiceId = $invoice->getId();
+
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('120.00'),
+            paidAt: new \DateTimeImmutable(),
+            method: PaymentMethod::BANK_TRANSFER,
+            autoLettrage: false,
+        );
+
+        // Recharger depuis la base
+        $this->entityManager->clear();
+        $reloadedInvoice = $this->invoiceRepository->find($invoiceId);
+
+        // Pas de lettrage car autoLettrage est désactivé
+        $this->assertNotNull($reloadedInvoice);
+        $this->assertNull($reloadedInvoice->getLettrageCode());
+    }
+
+    public function testMultiplePaymentsWithLettrageOnLastPayment(): void
+    {
+        $invoice = $this->createInvoiceWithAmount(120.00);
+        $invoiceId = $invoice->getId();
+
+        // Premier paiement partiel
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('50.00'),
+            paidAt: new \DateTimeImmutable(),
+            method: PaymentMethod::BANK_TRANSFER,
+            autoLettrage: true,
+        );
+
+        // Vérifier pas de lettrage après paiement partiel
+        $this->entityManager->clear();
+        $invoice = $this->invoiceRepository->find($invoiceId);
+        $this->assertNotNull($invoice);
+        $this->assertNull($invoice->getLettrageCode());
+
+        // Deuxième paiement qui complète la facture
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('70.00'),
+            paidAt: new \DateTimeImmutable(),
+            method: PaymentMethod::CREDIT_CARD,
+            autoLettrage: true,
+        );
+
+        // Recharger depuis la base
+        $this->entityManager->clear();
+        $reloadedInvoice = $this->invoiceRepository->find($invoiceId);
+
+        // Lettrage créé car la facture est entièrement payée
+        $this->assertNotNull($reloadedInvoice);
+        $this->assertNotNull($reloadedInvoice->getLettrageCode());
+        $this->assertSame('A', $reloadedInvoice->getLettrageCode());
+    }
+
     // ========== Helper Methods ==========
 
     /**

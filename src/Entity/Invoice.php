@@ -162,6 +162,12 @@ class Invoice
     #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'invoice', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $payments;
 
+    /**
+     * @var Collection<int, LettrageEntry>
+     */
+    #[ORM\OneToMany(targetEntity: LettrageEntry::class, mappedBy: 'invoice')]
+    private Collection $lettrageEntries;
+
     // ========== Credit Note Specific ==========
 
     #[ORM\ManyToOne(targetEntity: self::class)]
@@ -203,6 +209,7 @@ class Invoice
 
         $this->lines = new ArrayCollection();
         $this->payments = new ArrayCollection();
+        $this->lettrageEntries = new ArrayCollection();
 
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
@@ -630,6 +637,47 @@ class Invoice
         if (!$this->payments->contains($payment)) {
             $this->payments->add($payment);
         }
+    }
+
+    // ========== Lettrage Management ==========
+
+    /**
+     * Retourne les entrées de lettrage associées à cette facture.
+     *
+     * @return Collection<int, LettrageEntry>
+     */
+    public function getLettrageEntries(): Collection
+    {
+        return $this->lettrageEntries;
+    }
+
+    /**
+     * Retourne le lettrage associé à cette facture (si elle est lettrée).
+     *
+     * Si la facture a plusieurs lettrages (lettrage partiel), retourne le premier actif.
+     * Ignore les lettrages supprimés (soft delete).
+     */
+    public function getLettrage(): ?Lettrage
+    {
+        foreach ($this->lettrageEntries as $entry) {
+            $lettrage = $entry->getLettrage();
+            if (!$lettrage->isDeleted()) {
+                return $lettrage;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Retourne le code de lettrage de cette facture (si elle est lettrée).
+     *
+     * Si la facture a plusieurs lettrages (lettrage partiel), retourne le premier code.
+     * Ignore les lettrages supprimés (soft delete).
+     */
+    public function getLettrageCode(): ?string
+    {
+        return $this->getLettrage()?->getCode();
     }
 
     // ========== Calculations (Simple - no global discount) ==========

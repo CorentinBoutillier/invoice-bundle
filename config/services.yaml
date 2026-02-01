@@ -32,6 +32,19 @@ services:
         alias: CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator
         public: false
 
+    # Lettrage Services (must be defined before PaymentManager which depends on them)
+    CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGeneratorInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGenerator
+        public: false
+
+    CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManagerInterface:
+        alias: CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManager
+        public: true
+
+    CorentinBoutillier\InvoiceBundle\Service\PaymentManager:
+        arguments:
+            $lettrageManager: '@CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManagerInterface'
+
     CorentinBoutillier\InvoiceBundle\Service\PaymentManagerInterface:
         alias: CorentinBoutillier\InvoiceBundle\Service\PaymentManager
         public: false

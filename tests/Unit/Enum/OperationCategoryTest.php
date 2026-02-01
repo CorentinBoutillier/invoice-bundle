@@ -62,4 +62,21 @@ class OperationCategoryTest extends TestCase
         // Mixed defaults to services behavior (VAT on receipt)
         $this->assertFalse(OperationCategory::MIXED->isVatOnDebits());
     }
+
+    // ========== label() ==========
+
+    public function testLabelReturnsCorrectStringForGoods(): void
+    {
+        $this->assertSame('Livraison de biens', OperationCategory::GOODS->label());
+    }
+
+    public function testLabelReturnsCorrectStringForServices(): void
+    {
+        $this->assertSame('Prestation de services', OperationCategory::SERVICES->label());
+    }
+
+    public function testLabelReturnsCorrectStringForMixed(): void
+    {
+        $this->assertSame('Mixte (biens et services)', OperationCategory::MIXED->label());
+    }
 }

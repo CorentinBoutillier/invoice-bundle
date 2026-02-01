@@ -447,4 +447,17 @@ final class PaymentTest extends TestCase
         $this->assertNotNull($payment->getNotes());
         $this->assertStringContainsString('SEPA', $payment->getNotes());
     }
+
+    // ========== Lettrage Entries ==========
+
+    public function testGetLettrageEntriesIsEmptyByDefault(): void
+    {
+        $payment = new Payment(
+            amount: Money::fromEuros('100.00'),
+            paidAt: new \DateTimeImmutable(),
+            method: PaymentMethod::BANK_TRANSFER,
+        );
+
+        $this->assertCount(0, $payment->getLettrageEntries());
+    }
 }

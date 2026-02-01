@@ -6,6 +6,8 @@ namespace CorentinBoutillier\InvoiceBundle\Entity;
 
 use CorentinBoutillier\InvoiceBundle\DTO\Money;
 use CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -39,6 +41,12 @@ class Payment
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $notes = null;
 
+    /**
+     * @var Collection<int, LettrageEntry>
+     */
+    #[ORM\OneToMany(targetEntity: LettrageEntry::class, mappedBy: 'payment')]
+    private Collection $lettrageEntries;
+
     public function __construct(
         Money $amount,
         \DateTimeImmutable $paidAt,
@@ -47,6 +55,7 @@ class Payment
         $this->amountCents = $amount->getAmount();
         $this->paidAt = $paidAt;
         $this->method = $method;
+        $this->lettrageEntries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -112,5 +121,17 @@ class Payment
     public function setNotes(?string $notes): void
     {
         $this->notes = $notes;
+    }
+
+    // ========== Lettrage ==========
+
+    /**
+     * Retourne les entrées de lettrage associées à ce paiement.
+     *
+     * @return Collection<int, LettrageEntry>
+     */
+    public function getLettrageEntries(): Collection
+    {
+        return $this->lettrageEntries;
     }
 }

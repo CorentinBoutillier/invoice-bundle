@@ -9,7 +9,9 @@ use CorentinBoutillier\InvoiceBundle\Entity\Invoice;
 use CorentinBoutillier\InvoiceBundle\Entity\InvoiceLine;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceStatus;
 use CorentinBoutillier\InvoiceBundle\Enum\InvoiceType;
+use CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod;
 use CorentinBoutillier\InvoiceBundle\Service\Fec\FecExporterInterface;
+use CorentinBoutillier\InvoiceBundle\Service\PaymentManagerInterface;
 use CorentinBoutillier\InvoiceBundle\Tests\Functional\Repository\RepositoryTestCase;
 
 /**
@@ -28,6 +30,9 @@ final class FecExporterTest extends RepositoryTestCase
     /** @phpstan-ignore property.uninitialized */
     private FecExporterInterface $fecExporter;
 
+    /** @phpstan-ignore property.uninitialized */
+    private PaymentManagerInterface $paymentManager;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -37,6 +42,12 @@ final class FecExporterTest extends RepositoryTestCase
             throw new \RuntimeException('FecExporterInterface not found');
         }
         $this->fecExporter = $fecExporter;
+
+        $paymentManager = $this->kernel->getContainer()->get(PaymentManagerInterface::class);
+        if (!$paymentManager instanceof PaymentManagerInterface) {
+            throw new \RuntimeException('PaymentManagerInterface not found');
+        }
+        $this->paymentManager = $paymentManager;
     }
 
     /**
@@ -620,13 +631,16 @@ final class FecExporterTest extends RepositoryTestCase
     }
 
     /**
-     * Test 15: Export generates lettrage code for invoices with payments.
+     * Test 15: Export uses persisted lettrage code for invoices with payments.
      */
-    public function testExportGeneratesLettrageCodeForPaidInvoices(): void
+    public function testExportUsesPersistedLettrageCodeForPaidInvoices(): void
     {
-        $invoice = $this->createFinalizedInvoiceWithPayment();
-        $this->entityManager->persist($invoice);
-        $this->entityManager->flush();
+        // Utilise PaymentManager qui crée automatiquement le lettrage
+        $invoice = $this->createPaidInvoiceWithLettrage('FA-2024-LET001');
+
+        // Vérifier que le lettrage est bien créé
+        $this->assertNotNull($invoice->getLettrageCode(), 'Invoice should have a lettrage code');
+        $this->assertSame('A', $invoice->getLettrageCode());
 
         $csv = $this->fecExporter->export(
             new \DateTimeImmutable('2024-01-01'),
@@ -648,19 +662,20 @@ final class FecExporterTest extends RepositoryTestCase
     }
 
     /**
-     * Test 16: Export generates sequential lettrage codes for multiple paid invoices.
+     * Test 16: Export uses sequential persisted lettrage codes for multiple paid invoices.
      */
-    public function testExportGeneratesSequentialLettrageCodesForMultiplePaidInvoices(): void
+    public function testExportUsesSequentialPersistedLettrageCodesForMultiplePaidInvoices(): void
     {
-        $invoice1 = $this->createFinalizedInvoiceWithPayment();
-        $invoice1->setNumber('FA-2024-010');
-        $this->entityManager->persist($invoice1);
+        // Créer 2 factures payées avec lettrages (via PaymentManager)
+        $invoice1 = $this->createPaidInvoiceWithLettrage('FA-2024-010');
+        $invoice2 = $this->createPaidInvoiceWithLettrageAndDate(
+            new \DateTimeImmutable('2024-03-20'),
+            'FA-2024-011',
+        );
 
-        $invoice2 = $this->createFinalizedInvoiceWithPaymentAndDate(new \DateTimeImmutable('2024-03-20'));
-        $invoice2->setNumber('FA-2024-011');
-        $this->entityManager->persist($invoice2);
-
-        $this->entityManager->flush();
+        // Vérifier que les lettrages sont bien créés avec les bons codes
+        $this->assertSame('A', $invoice1->getLettrageCode());
+        $this->assertSame('B', $invoice2->getLettrageCode());
 
         $csv = $this->fecExporter->export(
             new \DateTimeImmutable('2024-01-01'),
@@ -950,7 +965,7 @@ final class FecExporterTest extends RepositoryTestCase
         $payment = new \CorentinBoutillier\InvoiceBundle\Entity\Payment(
             amount: Money::fromEuros('1200.00'),
             paidAt: new \DateTimeImmutable('2024-03-20'),
-            method: \CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod::BANK_TRANSFER,
+            method: PaymentMethod::BANK_TRANSFER,
         );
         $payment->setInvoice($invoice);
         $invoice->addPayment($payment);
@@ -985,7 +1000,7 @@ final class FecExporterTest extends RepositoryTestCase
         $payment = new \CorentinBoutillier\InvoiceBundle\Entity\Payment(
             amount: Money::fromEuros('360.00'),
             paidAt: $date->modify('+5 days'),
-            method: \CorentinBoutillier\InvoiceBundle\Enum\PaymentMethod::BANK_TRANSFER,
+            method: PaymentMethod::BANK_TRANSFER,
         );
         $payment->setInvoice($invoice);
         $invoice->addPayment($payment);
@@ -1017,6 +1032,110 @@ final class FecExporterTest extends RepositoryTestCase
         $invoice->addLine($line);
 
         return $invoice;
+    }
+
+    /**
+     * Crée une facture payée avec lettrage persisté via PaymentManager.
+     *
+     * Utilise PaymentManager pour créer automatiquement le lettrage.
+     */
+    private function createPaidInvoiceWithLettrage(string $number = 'FA-2024-LET'): Invoice
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: new \DateTimeImmutable('2024-03-15'),
+            dueDate: new \DateTimeImmutable('2024-04-15'),
+            customerName: 'Paid Customer Corp',
+            customerAddress: '555 Payment Street, 75008 Paris, France',
+            companyName: 'Test Company SARL',
+            companyAddress: '456 Company Avenue, 75002 Paris, France',
+        );
+
+        $invoice->setCompanyId(1);
+        $invoice->setStatus(InvoiceStatus::FINALIZED);
+        $invoice->setNumber($number);
+
+        $line = new InvoiceLine(
+            description: 'Service with payment',
+            unitPrice: Money::fromEuros('500.00'),
+            quantity: 2,
+            vatRate: 20.0,
+        );
+        $invoice->addLine($line);
+
+        // Persister la facture d'abord
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $invoiceId = $invoice->getId();
+
+        // Utiliser PaymentManager pour créer le paiement et le lettrage
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('1200.00'),
+            paidAt: new \DateTimeImmutable('2024-03-20'),
+            method: PaymentMethod::BANK_TRANSFER,
+        );
+
+        // Recharger depuis la base pour avoir les relations à jour
+        $this->entityManager->clear();
+        $reloadedInvoice = $this->entityManager->find(Invoice::class, $invoiceId);
+        if (null === $reloadedInvoice) {
+            throw new \RuntimeException('Invoice not found after reload');
+        }
+
+        return $reloadedInvoice;
+    }
+
+    /**
+     * Crée une facture payée avec lettrage persisté via PaymentManager (date personnalisée).
+     */
+    private function createPaidInvoiceWithLettrageAndDate(\DateTimeImmutable $date, string $number): Invoice
+    {
+        $invoice = new Invoice(
+            type: InvoiceType::INVOICE,
+            date: $date,
+            dueDate: $date->modify('+30 days'),
+            customerName: 'Another Paid Customer',
+            customerAddress: '666 Payment Avenue, 75009 Paris, France',
+            companyName: 'Test Company SARL',
+            companyAddress: '456 Company Avenue, 75002 Paris, France',
+        );
+
+        $invoice->setCompanyId(1);
+        $invoice->setStatus(InvoiceStatus::FINALIZED);
+        $invoice->setNumber($number);
+
+        $line = new InvoiceLine(
+            description: 'Another service with payment',
+            unitPrice: Money::fromEuros('300.00'),
+            quantity: 1,
+            vatRate: 20.0,
+        );
+        $invoice->addLine($line);
+
+        // Persister la facture d'abord
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $invoiceId = $invoice->getId();
+
+        // Utiliser PaymentManager pour créer le paiement et le lettrage
+        $this->paymentManager->recordPayment(
+            invoice: $invoice,
+            amount: Money::fromEuros('360.00'),
+            paidAt: $date->modify('+5 days'),
+            method: PaymentMethod::BANK_TRANSFER,
+        );
+
+        // Recharger depuis la base pour avoir les relations à jour
+        $this->entityManager->clear();
+        $reloadedInvoice = $this->entityManager->find(Invoice::class, $invoiceId);
+        if (null === $reloadedInvoice) {
+            throw new \RuntimeException('Invoice not found after reload');
+        }
+
+        return $reloadedInvoice;
     }
 
     /**

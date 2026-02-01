@@ -130,11 +130,44 @@ class TestKernel extends Kernel
             'CorentinBoutillier\InvoiceBundle\Service\NumberGenerator\InvoiceNumberGenerator',
         )->setPublic(true);
 
-        // Register PaymentManager service
+        // Register LettrageSequenceRepository
+        $container->register('CorentinBoutillier\InvoiceBundle\Repository\LettrageSequenceRepository')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Repository\LettrageSequenceRepository')
+            ->addArgument(new Reference('doctrine'))
+            ->addTag('doctrine.repository_service')
+            ->setPublic(true);
+
+        // Register LettrageCodeGenerator service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGenerator')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGenerator')
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGeneratorInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGenerator',
+        )->setPublic(true);
+
+        // Register LettrageManager service
+        $container->register('CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManager')
+            ->setClass('CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManager')
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Repository\LettrageSequenceRepository'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageCodeGeneratorInterface'))
+            ->setPublic(true);
+
+        // Alias interface to implementation
+        $container->setAlias(
+            'CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManagerInterface',
+            'CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManager',
+        )->setPublic(true);
+
+        // Register PaymentManager service (with LettrageManager)
         $container->register('CorentinBoutillier\InvoiceBundle\Service\PaymentManager')
             ->setClass('CorentinBoutillier\InvoiceBundle\Service\PaymentManager')
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addArgument(new Reference('event_dispatcher'))
+            ->addArgument(new Reference('CorentinBoutillier\InvoiceBundle\Service\Lettrage\LettrageManagerInterface'))
             ->setPublic(true);
 
         // Alias interface to implementation
