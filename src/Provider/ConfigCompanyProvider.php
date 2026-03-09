@@ -42,21 +42,20 @@ final class ConfigCompanyProvider implements CompanyProviderInterface
         return new CompanyData(
             name: $this->config['name'],
             address: $this->config['address'],
-            siret: isset($this->config['siret']) && \is_string($this->config['siret']) ? $this->config['siret'] : null,
-            vatNumber: isset($this->config['vatNumber']) && \is_string($this->config['vatNumber']) ? $this->config['vatNumber'] : null,
-            email: isset($this->config['email']) && \is_string($this->config['email']) ? $this->config['email'] : null,
-            phone: isset($this->config['phone']) && \is_string($this->config['phone']) ? $this->config['phone'] : null,
-            logo: isset($this->config['logo']) && \is_string($this->config['logo']) ? $this->config['logo'] : null,
-            legalForm: isset($this->config['legalForm']) && \is_string($this->config['legalForm']) ? $this->config['legalForm'] : null,
-            capital: isset($this->config['capital']) && \is_string($this->config['capital']) ? $this->config['capital'] : null,
-            rcs: isset($this->config['rcs']) && \is_string($this->config['rcs']) ? $this->config['rcs'] : null,
-            fiscalYearStartMonth: isset($this->config['fiscalYearStartMonth']) && \is_int($this->config['fiscalYearStartMonth']) ? $this->config['fiscalYearStartMonth'] : 1,
-            fiscalYearStartDay: isset($this->config['fiscalYearStartDay']) && \is_int($this->config['fiscalYearStartDay']) ? $this->config['fiscalYearStartDay'] : 1,
-            fiscalYearStartYear: isset($this->config['fiscalYearStartYear']) && \is_int($this->config['fiscalYearStartYear']) ? $this->config['fiscalYearStartYear'] : 0,
-            bankName: isset($this->config['bankName']) && \is_string($this->config['bankName']) ? $this->config['bankName'] : null,
-            iban: isset($this->config['iban']) && \is_string($this->config['iban']) ? $this->config['iban'] : null,
-            bic: isset($this->config['bic']) && \is_string($this->config['bic']) ? $this->config['bic'] : null,
-            // EN16931 structured address fields (support both snake_case and camelCase)
+            siret: $this->getStringConfig('siret'),
+            vatNumber: $this->getStringConfig('vatNumber') ?? $this->getStringConfig('vat_number'),
+            email: $this->getStringConfig('email'),
+            phone: $this->getStringConfig('phone'),
+            logo: $this->getStringConfig('logo'),
+            legalForm: $this->getStringConfig('legalForm') ?? $this->getStringConfig('legal_form'),
+            capital: $this->getStringConfig('capital'),
+            rcs: $this->getStringConfig('rcs'),
+            fiscalYearStartMonth: $this->getIntConfig('fiscalYearStartMonth') ?? $this->getIntConfig('fiscal_year_start_month') ?? 1,
+            fiscalYearStartDay: $this->getIntConfig('fiscalYearStartDay') ?? $this->getIntConfig('fiscal_year_start_day') ?? 1,
+            fiscalYearStartYear: $this->getIntConfig('fiscalYearStartYear') ?? $this->getIntConfig('fiscal_year_start_year') ?? 0,
+            bankName: $this->getStringConfig('bankName') ?? $this->getStringConfig('bank_name'),
+            iban: $this->getStringConfig('iban'),
+            bic: $this->getStringConfig('bic'),
             city: $this->getStringConfig('city'),
             postalCode: $this->getStringConfig('postalCode') ?? $this->getStringConfig('postal_code'),
             countryCode: $this->getStringConfig('countryCode') ?? $this->getStringConfig('country_code') ?? 'FR',
@@ -66,5 +65,10 @@ final class ConfigCompanyProvider implements CompanyProviderInterface
     private function getStringConfig(string $key): ?string
     {
         return isset($this->config[$key]) && \is_string($this->config[$key]) ? $this->config[$key] : null;
+    }
+
+    private function getIntConfig(string $key): ?int
+    {
+        return isset($this->config[$key]) && \is_int($this->config[$key]) ? $this->config[$key] : null;
     }
 }
